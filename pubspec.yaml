@@ -53,6 +53,13 @@ dependencies:
   google_nav_bar: ^5.0.6
   percent_indicator:
   alphabet_scroll_view: ^0.3.2
+  pin_code_fields:
+  carousel_slider:
+  http:
+  image_picker:
+  contacts_service: ^0.6.3
+  fast_contacts: ^3.0.3
+  permission_handler: ^11.0.0
 
 dev_dependencies:
   flutter_test:

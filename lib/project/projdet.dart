@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pup/project/projview/activities.dart';
 import 'package:pup/project/projview/files.dart';
 import 'package:pup/project/projview/threads.dart';
@@ -21,6 +22,8 @@ class _projdetState extends State<projdet> {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
+            elevation: 50,
+            backgroundColor: Colors.white,
             expandedHeight: 190.0,
             floating: true,
             pinned: true,
@@ -34,7 +37,7 @@ class _projdetState extends State<projdet> {
                     Container(
                       padding: EdgeInsets.all(8.0),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.4),
+                        color: Colors.black.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                     child: RichText(
@@ -42,14 +45,14 @@ class _projdetState extends State<projdet> {
                       children: [
                         TextSpan(text: 'Team: ',
                           style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.w300),),
-                        TextSpan(text: '... Design',
+                        TextSpan(text: 'PileUp',
                           style: TextStyle(fontSize: 15, color: Colors.black, fontWeight: FontWeight.w500),)
                       ]
                     ),
                     ),
                     ),
                     SizedBox(width: 10.0),
-                    Icon(Icons.edit),
+                    Icon(Icons.edit,color: Colors.black,),
                   ],
                 ),
               ),
@@ -57,23 +60,65 @@ class _projdetState extends State<projdet> {
             leadingWidth: 300,
             actions: <Widget>[
               IconButton(
-                icon: const Icon(Icons.notifications),
+                icon: const Icon(Icons.notifications,color: Colors.black,),
                 onPressed: () {},
               ),
               IconButton(
-                icon: const Icon(Icons.cancel),
+                icon: const Icon(Icons.cancel,color: Colors.black),
                 onPressed: () {},
               ),
             ],
             //centerTitle: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                "Sliver App Bar Example",
-                style: TextStyle(fontSize: 15),
-              ),
+            // title: Text(
+            //   "riyjhgvmcgfzyreyresdygkj",
+            //   style: TextStyle(fontSize: 15,color: Colors.black),
+            // ),
+            // titleSpacing: 100,
+            flexibleSpace: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top:80.0),
+                  child: FlexibleSpaceBar(
+                    title: Text(
+                      "PileUp App Database",
+                      style: TextStyle(fontSize: 15,color: Colors.black),
+                    ),
+                    centerTitle: false,
+                    titlePadding: EdgeInsets.only(top:20,left: 20,bottom: 5),
+                  ),
+                ),
+                Visibility(
+                    visible: true,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 50),
+                          child: Row(
+                            children: [
+                              Text("Due Date:",style: TextStyle(fontSize: 15,color: Colors.black)),
+                              Container(
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.access_time),
+                                    Text(DateFormat.d().format(DateTime.now()).toString())
+                                  ],
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                ),
+
+              ]
             ),
-            bottom: PreferredSize(preferredSize: Size.fromHeight(50), child: Text("Hii Pratham"),),
-            collapsedHeight: 100,
+            // bottom: PreferredSize(preferredSize: Size.fromHeight(50),
+            //   child: Text("Hello",style: TextStyle(fontSize: 15,color: Colors.black)),),
+            collapsedHeight: 150,
           ),
       SliverList(
         delegate: SliverChildListDelegate([

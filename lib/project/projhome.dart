@@ -1,10 +1,12 @@
 //import 'package:badges/badges.dart';
-import 'dart:ffi';
+
 
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:pup/project/projdet.dart';
+
+import '../colors.dart';
 
 class projhome extends StatefulWidget {
   const projhome({Key? key}) : super(key: key);
@@ -32,29 +34,29 @@ class _projhomeState extends State<projhome> {
               alignment: AlignmentDirectional.topStart,
               child: Padding(
                 padding: EdgeInsets.only(
-                    top: 35,
+                    top: 40,
                     left: 15), //EdgeInsetsDirectional.fromSTEB(0, 25, 0, 0),
                 child: RichText(
                   text: TextSpan(
                     children: [
-                      // TextSpan(
-                      //   text: 'Hi, ',
-                      //   style: TextStyle(
-                      //     fontFamily: 'Readex Pro',
-                      //     //color: Colors.black54,//FlutterFlowTheme.of(context).primaryText,
-                      //     fontSize: 18,
-                      //     fontWeight: FontWeight.w300,
-                      //     color: Colors.black
-                      //   ),
-                      // ),
-                      // TextSpan(
-                      //   text: 'Nici\n',
-                      //   style: TextStyle(
-                      //     color: Colors.black12, //FlutterFlowTheme.of(context).primary,
-                      //     fontWeight: FontWeight.w600,
-                      //     fontSize: 18,
-                      //   ),
-                      // ),
+                      TextSpan(
+                        text: 'Hi, ',
+                        style: TextStyle(
+                          fontFamily: 'Readex Pro',
+                          //color: Colors.black54,//FlutterFlowTheme.of(context).primaryText,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.black
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'Khushi\n',
+                        style: TextStyle(
+                          color: Colors.black54, //FlutterFlowTheme.of(context).primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                      ),
                       TextSpan(
                         text: 'You Have\n',
                         style: TextStyle(fontSize: 21, color: Colors.black),
@@ -63,14 +65,11 @@ class _projhomeState extends State<projhome> {
                         text: '4 Projects',
                         style: TextStyle(
                             fontSize: 25,
-                            decoration: TextDecoration.underline,
                             color: Colors.black),
                       )
                     ],
-                    style: TextStyle(
+                    style: TextStyle(decoration: TextDecoration.underline,
                       fontFamily: 'Readex Pro',
-
-                      //lineHeight: 1.3,
                     ),
                   ),
                 ),
@@ -553,6 +552,7 @@ class _projhomeState extends State<projhome> {
                     children: [
                       Container(
                         width: 160,
+                        height: 85,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                           color:Color(0xFFE0EBDD),
@@ -602,25 +602,28 @@ class _projhomeState extends State<projhome> {
                                 // rotateLinearGradient: true,
                               ),
                             ),
-                            Column(
-                              children: [
-                                Text("Completed",
-                                style: TextStyle(color: Colors.black,
-                                fontWeight: FontWeight.w300,
-                                ),),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(text:"56/64 ",
-                                      style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 20)
-                                      ),
-                                      TextSpan(text:" Task",
-                                          style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 15)
-                                      ),
-                                    ]
-                                  ),
-                                )
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.only(top:20.0),
+                              child: Column(
+                                children: [
+                                  Text("Completed",
+                                  style: TextStyle(color: Colors.black,
+                                  fontWeight: FontWeight.w300,
+                                  ),),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(text:"56/64 ",
+                                        style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 20)
+                                        ),
+                                        TextSpan(text:"Task",
+                                            style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500,fontSize: 15)
+                                        ),
+                                      ]
+                                    ),
+                                  )
+                                ],
+                              ),
                             )
                           ],
                         ),
@@ -630,9 +633,10 @@ class _projhomeState extends State<projhome> {
                         children: [
                           Container(
                             width: 160,
+                            height: 80,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.all(Radius.circular(10)),
-                              color:Color(0xFFEDE3DE),
+                              color:Color(0xFFDEE1ED),
                             ),
                             child: Row(
                               children: [
@@ -640,25 +644,28 @@ class _projhomeState extends State<projhome> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Icon(Icons.data_exploration_sharp,color: Colors.black,size: 35,)
                                 ),
-                                Column(
-                                  children: [
-                                    Text("In Progress",
-                                      style: TextStyle(color: Colors.black,
-                                        fontWeight: FontWeight.w300,
-                                      ),),
-                                    RichText(
-                                      text: TextSpan(
-                                          children: [
-                                            TextSpan(text:"6 ",
-                                                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 20)
-                                            ),
-                                            TextSpan(text:" Task",
-                                                style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 15)
-                                            ),
-                                          ]
-                                      ),
-                                    )
-                                  ],
+                                Padding(
+                                  padding: const EdgeInsets.only(top:20.0,left:10),
+                                  child: Column(
+                                    children: [
+                                      Text("In Progress",
+                                        style: TextStyle(color: Colors.black,
+                                          fontWeight: FontWeight.w300,
+                                        ),),
+                                      RichText(
+                                        text: TextSpan(
+                                            children: [
+                                              TextSpan(text:"6 ",
+                                                  style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 20)
+                                              ),
+                                              TextSpan(text:" Task",
+                                                  style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 15)
+                                              ),
+                                            ]
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 )
                               ],
                             ),
@@ -685,7 +692,15 @@ class _projhomeState extends State<projhome> {
                   ],
                 ),
               ),
+            ),
+            taskGrp(date: '26', mon: 'Sep', taskName: 'PileUp App', noSubT: 5, tag: 'College', desc: 'App Development...', col: blue, per: 0.2,),
+            taskGrp(date: '29', mon: 'Sep', taskName: 'Kerberos PPT', noSubT: 2, tag: 'College', desc: 'Presentation...', col: orange, per: 0.01,),
+            taskGrp(date: '26', mon: 'Sep', taskName: 'PileUp App', noSubT: 5, tag: 'College', desc: 'App Development...', col: pink, per: 0.2,),
+            taskGrp(date: '29', mon: 'Sep', taskName: 'Kerberos PPT', noSubT: 2, tag: 'College', desc: 'Presentation...', col: brown, per: 0.01,),
+            Container(
+              height: 90,
             )
+
           ]),
         ));
   }
@@ -949,6 +964,105 @@ class projProgress extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class taskGrp extends StatelessWidget {
+  final String date;
+  final String mon;
+  final String taskName;
+  final int noSubT;
+  final String tag;
+  final String desc;
+  final Color col;
+  final double per;
+
+  const taskGrp({
+    super.key,
+    required this.date, required this.mon, required this.taskName, required this.noSubT, required this.tag, required this.desc, required this.col, required this.per
+  });
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(top:10.0,left:20,right: 20),
+        child: Container(
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(date,style: TextStyle(color: Colors.black),),
+                    Text(mon,style: TextStyle(color: Colors.black),),
+                  ],
+                ),
+              ),
+              VerticalDivider(
+                width: 4,
+                thickness: 1,
+                indent: 20,
+                endIndent: 0,
+                color: Colors.black,
+              ),
+
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top:8,bottom:8,right: 10),
+                    child: Container(
+                      width: 260,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(taskName,style: TextStyle(color: Colors.black,fontSize: 18),),
+                          Text("$noSubT Subtasks",style: TextStyle(color: Colors.black.withOpacity(0.5)),)
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(right: 220.0,bottom: 5),
+                    child: Container(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 4,right: 4),
+                        child: Text(tag,style: TextStyle(color: Colors.black,fontSize: 8),),
+                      ),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
+                          border: Border.all(color: Colors.black,width: 1),
+                          color: Colors.black.withOpacity(0.1)
+                      ),
+                    ),
+                  ),
+                  Container(
+                      width: 250,
+                      height: 50,
+                      child: Text(desc,style: TextStyle(color: Colors.black.withOpacity(0.6)),)
+                  ),
+                  LinearPercentIndicator(
+                    width: 276,
+                    animation: true,
+                    animationDuration: 1000,
+                    lineHeight: 3.0,
+                    percent: per,
+                    //center: Text("20.0%"),
+                    linearStrokeCap: LinearStrokeCap.butt,
+                    progressColor: Colors.black,
+                    backgroundColor: Colors.transparent,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          decoration: BoxDecoration(
+              color: col,
+              borderRadius: BorderRadiusDirectional.all(Radius.circular(10))
+          ),
+        )
     );
   }
 }

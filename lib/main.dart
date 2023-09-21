@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pup/startingpgs/signup/signup.dart';
+import 'package:pup/startingpgs/signup/sup1.dart';
 import 'package:pup/themes/dark_theme.dart';
 import 'package:pup/themes/light_theme.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';

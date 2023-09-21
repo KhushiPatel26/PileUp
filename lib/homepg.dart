@@ -5,8 +5,10 @@ import 'package:pup/mystuff/task/addtask.dart';
 import 'package:pup/mystuff/mystuff.dart';
 import 'package:pup/people/contact.dart';
 import 'package:pup/people/contactbook.dart';
+import 'package:pup/people/contlist.dart';
 import 'package:pup/project/projhome.dart';
 import 'package:pup/helper/pupicon.dart';
+import 'package:pup/people/contacts.dart';
 import 'home.dart';
 
 class homepg extends StatefulWidget {
@@ -22,11 +24,11 @@ class _homepgState extends State<homepg> {
   static const TextStyle optionStyle =
   TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static const List _Professional = [
-    contactBook(),
-    myStuff(),//addtask(),
     homeall(),
+    myStuff(),//addtask(),
     projhome(),
-    contact()//home(),
+    contactBook(),
+    contacts()//contlist()//contact()//home(),
     //home(),
     //mystuff(),
     //projects(),
