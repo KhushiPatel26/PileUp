@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:pup/helper/pupicon.dart';
 import 'package:pup/homepg.dart';
 
 class sup4c extends StatefulWidget {
@@ -20,6 +23,7 @@ class sup4c extends StatefulWidget {
 }
 
 class _sup4cState extends State<sup4c> {
+  bool popup=false;
   @override
   void initState() {
     super.initState();
@@ -53,7 +57,7 @@ class _sup4cState extends State<sup4c> {
             ),
             Padding(
               padding:
-              EdgeInsetsDirectional.fromSTEB(12, 0, 0, 40),
+              EdgeInsetsDirectional.fromSTEB(12, 0, 0, 25),
               child: Text(
                 'Let\'s get started by filling out the form below.',
                 textAlign: TextAlign.start,
@@ -64,6 +68,11 @@ class _sup4cState extends State<sup4c> {
                   fontWeight: FontWeight.w300,
                 ),
               ),
+            ),
+            CircleAvatar(
+              child: Text("Logo",style: TextStyle(fontWeight: FontWeight.w200, letterSpacing: 3),),
+              radius: 45,
+              backgroundColor: Colors.grey.withOpacity(0.1),
             ),
             Padding(
               padding:
@@ -518,35 +527,200 @@ class _sup4cState extends State<sup4c> {
                           elevation: 4.0,
                         )),
                   ),
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => homepg()),
-                        );
+                  Visibility(
+                    visible: !popup,
+                    child: ElevatedButton(
+                        onPressed: ()async {
+                          print(popup);
+                          await showDialog<void>(
+                              context: context,
+                              builder: (context) => Container(
+                                height: 600,
+                                width: 720,
+                                child: AlertDialog(
+                                  backgroundColor: Colors.white,
 
-                        setState(() {
-                          cntr += 1;
-                          print(cntr);
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                            top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),
-                        child: Text(
-                          "Next",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18),
+                                  content: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: <Widget>[
+                                      Positioned(
+                                        left: -40,
+                                        top: -40,
+                                        child: InkResponse(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const CircleAvatar(
+                                            backgroundColor: Colors.black,
+                                            child: Icon(Icons.close),
+                                          ),
+                                        ),
+                                      ),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Padding(
+                                            padding:
+                                            const EdgeInsets.only(top: 10.0, left: 20, bottom: 10),
+                                            child: Text(
+                                              'Company Registered Successfully ! 🎉',
+                                              style: TextStyle(
+                                                fontFamily: 'Outfit',
+                                                color: Color(0xFF101213),
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding:
+                                            const EdgeInsets.only( left: 15, bottom: 5),
+                                            child: Text(
+                                              'Invite your Team Members',
+                                              style: TextStyle(
+                                                fontFamily: 'Outfit',
+                                                color: Color(0xFF101213),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w300,
+                                              ),
+                                            ),
+                                          ),
+                                          Image.asset("lib/assets/share_code.png"),
+                                          Padding(
+                                              padding: const EdgeInsets.all(8),
+                                              child: Container(
+                                                  width: 440,
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.black.withOpacity(0.1),
+                                                      borderRadius: BorderRadius.all(Radius.circular(30))
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Padding(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                                                        child: SelectableText(
+                                                          "iuw46urufh",
+                                                          style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold,fontSize: 15),
+                                                        ),
+                                                      ),
+                                                      ElevatedButton(onPressed: (){
+                                                        Clipboard.setData(new ClipboardData(text:  "iuw46urufh"))
+                                                            .then((_) {
+                                                          // controller.clear();
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(backgroundColor: Colors.black12.withOpacity(0.2),content: Text('Copied to your clipboard !')));
+                                                        });
+                                                      }, child:Padding(
+                                                        padding: const EdgeInsets.only(
+                                                            top: 5.0,
+                                                            bottom: 5.0,
+                                                            left: 3.0,
+                                                            right: 3.0),
+                                                        child: Text(
+                                                          "Copy Code",
+                                                          style: TextStyle(
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.w400,
+                                                              fontSize: 12),
+                                                        ),
+                                                      ),
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor: Colors.transparent,
+                                                          //primary: Colors.black,
+                                                          shape: RoundedRectangleBorder(
+                                                              side: BorderSide(color: Colors.black),
+                                                              borderRadius:
+                                                              BorderRadius.circular(30)),
+                                                          elevation: 0.0,
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ))),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 8.0,
+                                                bottom: 10.0,
+                                                left: 8.0,
+                                                right: 8.0),
+                                            child: Text(
+                                              "Invite Members",
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w300,
+                                                  fontSize: 18),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 18.0),
+                                            child: Row(
+                                              children: [
+                                                IconButton(onPressed: (){}, icon: Icon(FontAwesomeIcons.whatsapp, color: Colors.green,)),
+                                                IconButton(onPressed: (){}, icon: Icon(FontAwesomeIcons.telegram, color: Colors.blueAccent,)),
+                                                IconButton(onPressed: (){}, icon: Icon(Icons.email_outlined, color: Colors.redAccent,)),
+                                                IconButton(onPressed: (){}, icon: Icon(FontAwesomeIcons.sms, color: Colors.yellow,)),
+                                              ],
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ));
+                          popup=true;
+                          print(popup);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),
+                          child: Text(
+                            "Done",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w300,
+                                fontSize: 18),
+                          ),
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        //primary: Colors.black,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                        elevation: 4.0,
-                      )),
+                        style: ElevatedButton.styleFrom(
+                          //primary: Colors.black,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          elevation: 4.0,
+                        )),
+                  ),
+                  Visibility(
+                    visible: popup,
+                    child: ElevatedButton(
+                        onPressed: () {
+                          print(popup);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => homepg()),
+                          );
+
+                          setState(() {
+                            cntr += 1;
+                            print(cntr);
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),
+                          child: Text(
+                            "Next",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w300,
+                                fontSize: 18),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          //primary: Colors.black,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          elevation: 4.0,
+                        )),
+                  ),
                 ],
               ),
             ),

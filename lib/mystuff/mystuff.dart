@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pup/mystuff/note/notepg.dart';
+import 'package:pup/mystuff/note/notes.dart';
 import 'package:pup/mystuff/note/noteview.py.dart';
 import 'package:pup/mystuff/task/taskpg.dart';
 
@@ -108,7 +109,7 @@ class _myStuffState extends State<myStuff> {
               child: Container(
                 color: Colors.blueGrey,
                 width: visible?(MediaQuery.of(context).size.width)-50:MediaQuery.of(context).size.width,
-                child: task?taskpg():noteView(),//#notepg(),
+                child: task?taskpg():notes(),//#notepg(),
               ),
             ),
             Padding(

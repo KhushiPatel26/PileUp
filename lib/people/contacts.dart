@@ -10,62 +10,77 @@ class contacts extends StatefulWidget {
 }
 
 class _contactsState extends State<contacts> {
+  List<Contact>? _contacts;
+  @override
+  void initState() {
+    super.initState();
+    fetchContacts();
+  }
+
+  Future<void> fetchContacts() async {
+    bool isGranted = await Permission.contacts.status.isGranted;
+    if (!isGranted) {
+      isGranted = await Permission.contacts.request().isGranted;
+    }
+
+    if (isGranted) {
+      List<Contact> contacts = await FastContacts.getAllContacts();
+      setState(() {
+        _contacts = contacts;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Sort contacts alphabetically by displayName
+    _contacts?.sort((a, b) {
+      return (a.displayName ?? '').toLowerCase().compareTo((b.displayName ?? '').toLowerCase());
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text("Contacts",style: TextStyle(color: Colors.black),),
-        backgroundColor: Colors.white,
+        title: Text("Contacts"),
       ),
-      body: Container(
-        height: double.infinity,
-        child: FutureBuilder(
-          future: getContacts(),
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.data == null) {
-              print(snapshot.data);
-              return const Center(
-                child: SizedBox(
-                  height: 50, width: 50, child: CircularProgressIndicator(),),
-              );
-            }
-            return ListView.builder(
-                itemCount: snapshot.data.length,
-                itemBuilder: (context, index) {
-             Contact contact =snapshot.data[index];
-             print(contact);
-             return ListTile(
-               leading: CircleAvatar(
-                 radius: 20,
-                 child: Icon(Icons.person),
-               ),
-               title: Text(contact.displayName,style: TextStyle(color: Colors.black),),
-               subtitle: Column(
-                 children: [
-                   Text(contact.phones[0] as String,style: TextStyle(color: Colors.black),),
-                   Text(contact.emails[0] as String,style: TextStyle(color: Colors.black),),
-                 //  Text(contact.phones[0].toString()),
-                 ],
-               ),
-             );
-            }
-            );
+      body: _contacts != null
+          ? ListView.builder(
+        itemCount: _contacts!.length,
+        itemBuilder: (context, index) {
+          Contact contact = _contacts![index];
+
+          // Check if there's a phone number
+          bool hasPhoneNumber = contact.phones.isNotEmpty;
+
+          // Skip contacts without phone numbers
+          if (!hasPhoneNumber) {
+            return SizedBox.shrink();
           }
-        ),
+
+          return ListTile(
+            leading: CircleAvatar(
+              radius: 20,
+              child: Icon(Icons.person),
+            ),
+            title: Text(
+              contact.displayName ?? 'Unknown',
+              style: TextStyle(color: Colors.black),
+            ),
+            subtitle: Column(
+              children: [
+                Text(
+                  contact.phones[0].number,
+                  style: TextStyle(color: Colors.black),
+                ),
+              ],
+            ),
+          );
+        },
+      )
+          : Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
 
-  Future<List<Contact>> getContacts() async{
-    bool isGranted = await Permission.contacts.status.isGranted;
-    if(!isGranted){
-isGranted = await Permission.contacts.request().isGranted;
-    }
-    // if(isGranted){
-      print(FastContacts.getAllContacts());
-      return await FastContacts.getAllContacts();
-    // }
-    // return [];
-  }
 }

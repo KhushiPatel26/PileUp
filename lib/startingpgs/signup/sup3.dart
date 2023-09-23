@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pup/startingpgs/signup/signup.dart';
 import 'package:pup/startingpgs/signup/sup4a.dart';
@@ -36,8 +37,21 @@ class _sup3State extends State<sup3> {
   bool getcomp = false;
   String userType = "";
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Future<void> _registerWithEmailAndPassword(String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      print('Successfully registered: ${userCredential.user?.uid}');
+    } on FirebaseAuthException catch (e) {
+      print('Failed to register: $e');
+    }
+  }
+
   Future<void> createUser(String name, String email, String phoneNumber,
-      String password, String userType) async {
+      String password, String userType, String uid) async {
     userType = comp ? "company user" : "personal user";
     final response = await http.post(
       Uri.parse('http://$ip:3000/users'),
@@ -50,6 +64,7 @@ class _sup3State extends State<sup3> {
         'phoneNumber': phoneNumber,
         'password': password,
         'userType': userType,
+        'uid':uid
       }),
     );
 
@@ -60,33 +75,34 @@ class _sup3State extends State<sup3> {
     }
   }
 
-  Future<void> insert() async {
-    final url =
-        'http://$ip:3000/insert'; // Replace with your Node.js server endpoint
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        body: {
-          'name': widget.firstName + " " + widget.lastName,
-          'email': widget.emailAddress,
-          'phoneNumber': widget.phoneNum,
-          'password': widget.password,
-          'userType': userType,
-          'profilePicture': "hi",
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print('Data inserted successfully.');
-      } else {
-        print(
-            'Failed to insert data. Error ${response.statusCode}: ${response.body}');
-      }
-    } catch (error) {
-      print('Error: $error');
-    }
-  }
+  // Future<void> insert() async {
+  //   final url =
+  //       'http://$ip:3000/insert'; // Replace with your Node.js server endpoint
+  //
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(url),
+  //       body: {
+  //         'name': widget.firstName + " " + widget.lastName,
+  //         'email': widget.emailAddress,
+  //         'phoneNumber': widget.phoneNum,
+  //         'password': widget.password,
+  //         'userType': userType,
+  //         'profilePicture': "hi",
+  //         'uid':_uid
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       print('Data inserted successfully.');
+  //     } else {
+  //       print(
+  //           'Failed to insert data. Error ${response.statusCode}: ${response.body}');
+  //     }
+  //   } catch (error) {
+  //     print('Error: $error');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -325,17 +341,26 @@ class _sup3State extends State<sup3> {
                           onPressed: (per == true ||
                                   (comp == true ||
                                       (getcomp == true || incomp == true)))
-                              ? () {
+                              ? () async {
+
+                            UserCredential cred = await _auth.createUserWithEmailAndPassword(
+                                email: widget.emailAddress, password:  widget.password);
+                           //String _uid= cred.user!.uid;
+                            String _uid = cred.user?.uid ?? "";
+                            print("UIDUIDUIUDI:......"+_uid);
                                   print(userType);
-                                  insert();
+                                 // insert();
                                   createUser(
-                                      widget.firstName,
+                                      widget.firstName+" "+widget.lastName,
                                       widget.emailAddress,
                                       widget.phoneNum,
                                       widget.password,
-                                      userType);
+                                      userType,
+                                      _uid
+                                  );
 
                                   if (per == true) {
+
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(

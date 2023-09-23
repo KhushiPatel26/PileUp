@@ -186,6 +186,7 @@ class _sup4aState extends State<sup4a> {
                         )
                     ),
                   ),
+                  if(bus || stuteach || other)
                   ElevatedButton(onPressed: (){
                     Navigator.push(
                       context,

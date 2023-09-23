@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -526,13 +524,13 @@ class taskGrp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(top:10.0,left:20,right: 20),
+        padding: EdgeInsets.only(top:10.0,left:visible?5:20,right: visible?10:20),
         child: Container(
-          //width: 350,
+          width: visible?305:350,
           child: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(2.0),
                 child: Column(
                   children: [
                     Text(date,style: TextStyle(color: Colors.black,fontWeight: FontWeight.w300),),
@@ -540,12 +538,10 @@ class taskGrp extends StatelessWidget {
                   ],
                 ),
               ),
-              VerticalDivider(
-                width: 1,
-                thickness: 1,
-                // indent: 20,
-                // endIndent: 0,
-                color: Colors.black,
+              Container(
+               width: 0.7,
+                height: 95,
+                color: Colors.grey,
               ),
 
               Column(

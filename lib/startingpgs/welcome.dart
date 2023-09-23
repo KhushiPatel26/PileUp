@@ -1,6 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:pup/startingpgs/login/signin.dart';
 import 'package:pup/startingpgs/signup/signup.dart';
+import 'package:pup/startingpgs/signup/sup1.dart';
 
 
 class welcome extends StatefulWidget {
@@ -36,8 +38,8 @@ class _welcomeState extends State<welcome> {
                     child: Column(
                       children: [
                         Container(
-                            height: 200,
-                            width: 400,
+                            height: 150,
+                            width: 300,
                             child: Image.asset(img[index])),
                         SizedBox(
                           height: 20,
@@ -101,7 +103,7 @@ class _welcomeState extends State<welcome> {
                         ),
                         //style: raisedButtonStyle,
                         onPressed: ()  {
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>signup()));//Navigator.pushNamed(context, 'signuppg');
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>sup1()));//Navigator.pushNamed(context, 'signuppg');
                         },
                         child: Text('Create an account'),
                       ),
@@ -118,7 +120,7 @@ class _welcomeState extends State<welcome> {
                         ),
                         //style: raisedButtonStyle,
                         onPressed: ()  {
-                          Navigator.pushNamed(context, 'signin');
+                          Navigator.push(context, MaterialPageRoute(builder: (context)=>signin()));
                           //MongoDatabase.insert({"fname":tf_fname.text,"lname":tf_lname.text,"phone":tf_phone.text,"email":tf_email.text,"password":tf_pw.text});
                           //print('data stored');
                         },

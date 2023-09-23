@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pup/startingpgs/signup/signup.dart';
 import 'package:pup/startingpgs/signup/sup3.dart';
+import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 
 class sup2 extends StatefulWidget {
   final String firstName;
@@ -9,26 +11,30 @@ class sup2 extends StatefulWidget {
   final String emailAddress;
   final String phoneNum;
   final String password;
+  final String var_id;
 
   const sup2({
     Key? key,
     required this.firstName,
     required this.lastName,
     required this.emailAddress,
-    required this.phoneNum, required this.password,
+    required this.phoneNum,
+    required this.password, required this.var_id,
   }) : super(key: key);
   @override
   State<sup2> createState() => _sup2State();
 }
 
 class _sup2State extends State<sup2> {
-  int cntr=2;
-  TextEditingController pinCodeController=TextEditingController();
+  FirebaseAuth auth = FirebaseAuth.instance;
+  var code;
+  int cntr = 2;
+  TextEditingController pinCodeController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body:SingleChildScrollView(
+      body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
             FocusManager.instance.primaryFocus?.unfocus();
@@ -49,11 +55,10 @@ class _sup2State extends State<sup2> {
                 Container(
                   child: Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(12, 10, 12, 5),
-                    child:  Column(
+                    child: Column(
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-
                         Padding(
                           padding: EdgeInsets.only(top: 20),
                           child: Column(
@@ -64,7 +69,7 @@ class _sup2State extends State<sup2> {
                                 child: Text(
                                   'Enter OTP below',
                                   textAlign: TextAlign.center,
-                                  style:TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Outfit',
                                     color: Color(0xFF57636C),
                                     fontSize: 14,
@@ -82,11 +87,12 @@ class _sup2State extends State<sup2> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(44, 8, 44, 0),
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    44, 8, 44, 0),
                                 child: Text(
                                   'This code helps keep your account safe and secure.',
                                   textAlign: TextAlign.center,
-                                  style:TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Outfit',
                                     color: Color(0xFF57636C),
                                     fontSize: 14,
@@ -95,143 +101,224 @@ class _sup2State extends State<sup2> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsetsDirectional.fromSTEB(0, 32, 0, 0),
-                                child: PinCodeTextField(
-                                  // autoDisposeControllers: false,
-                                  appContext: context,
-                                  length: 6,
-                                  textStyle:
-                                  TextStyle(
-                                    fontFamily: 'Outfit',
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  enableActiveFill: false,
-                                  autoFocus: true,
-                                  enablePinAutofill: true,
-                                  errorTextSpace: 0,
-                                  showCursor: true,
-                                  cursorColor: Color(0xFF212121),
-                                  obscureText: false,
-                                  hintCharacter: '-',
-                                  keyboardType: TextInputType.number,
-                                  pinTheme: PinTheme(
-                                    fieldHeight: 50,
-                                    fieldWidth: 50,
-                                    borderWidth: 3,
-                                    borderRadius: BorderRadius.circular(12),
-                                    shape: PinCodeFieldShape.box,
-                                    activeColor: Colors.black,
-                                    inactiveColor: Color(0xFFF1F4F8),
-                                    selectedColor: Color(0xFF57636C),
-                                    activeFillColor: Colors.black,
-                                    inactiveFillColor: Color(0xFFF1F4F8),
-                                    selectedFillColor: Color(0xFF57636C),
-                                  ),
-                                  controller: pinCodeController,
-                                  onChanged: (_) {},
-                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                padding:
+                                    EdgeInsetsDirectional.fromSTEB(0, 32, 0, 0),
+                                child: OtpTextField(
+                                  numberOfFields: 6,
 
+                                  showFieldAsBox: false,
+                                  borderWidth: 4.0,
+                                  //runs when a code is typed in
+                                  onCodeChanged: (String code) {
+                                    //handle validation or checks here if necessary
+                                  },
+                                  //runs when every textfield is filled
+                                  onSubmit: (String verificationCode) {
+                                    code = (verificationCode);
+                                  },
                                 ),
+                                // PinCodeTextField(
+                                //   // autoDisposeControllers: false,
+                                //   appContext: context,
+                                //   length: 6,
+                                //   textStyle: TextStyle(
+                                //     fontFamily: 'Outfit',
+                                //     color: Colors.black,
+                                //     fontSize: 16,
+                                //     fontWeight: FontWeight.w400,
+                                //   ),
+                                //   mainAxisAlignment:
+                                //       MainAxisAlignment.spaceEvenly,
+                                //   enableActiveFill: false,
+                                //   autoFocus: true,
+                                //   enablePinAutofill: true,
+                                //   errorTextSpace: 0,
+                                //   showCursor: true,
+                                //   cursorColor: Color(0xFF212121),
+                                //   obscureText: false,
+                                //   hintCharacter: '-',
+                                //   keyboardType: TextInputType.number,
+                                //   pinTheme: PinTheme(
+                                //     fieldHeight: 50,
+                                //     fieldWidth: 50,
+                                //     borderWidth: 3,
+                                //     borderRadius: BorderRadius.circular(12),
+                                //     shape: PinCodeFieldShape.box,
+                                //     activeColor: Colors.black,
+                                //     inactiveColor: Color(0xFFF1F4F8),
+                                //     selectedColor: Color(0xFF57636C),
+                                //     activeFillColor: Colors.black,
+                                //     inactiveFillColor: Color(0xFFF1F4F8),
+                                //     selectedFillColor: Color(0xFF57636C),
+                                //   ),
+                                //   controller: pinCodeController, //maru alag che thodu
+                                //   onChanged: (String code) {},
+                                //   // autovalidateMode:
+                                //   //     AutovalidateMode.onUserInteraction,
+                                //   onSubmitted: (String verificationCode) {
+                                //     code = (verificationCode);
+                                //   },
+                                // ),
                               ),
                             ],
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(top:380.0,right: 10,left: 10),
+                          padding: const EdgeInsets.only(
+                              top: 380.0, right: 10, left: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Visibility(
-                                visible: true,//cntr==1? false:true,
-                                child: ElevatedButton(onPressed: (){
-                                  setState(() {
-                                    cntr-=1;
-                                    print(cntr);
-                                  });
-                                  Navigator.of(context).pop();
-                                },
+                                visible: true, //cntr==1? false:true,
+                                child: ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        cntr -= 1;
+                                        print(cntr);
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
                                     child: Padding(
-                                      padding: const EdgeInsets.only(top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),
-                                      child: Text("Back",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w300,fontSize: 18),),
+                                      padding: const EdgeInsets.only(
+                                          top: 8.0,
+                                          bottom: 10.0,
+                                          left: 8.0,
+                                          right: 8.0),
+                                      child: Text(
+                                        "Back",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: 18),
+                                      ),
                                     ),
                                     style: ElevatedButton.styleFrom(
                                       //primary: Colors.black,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30)),
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                       elevation: 4.0,
-                                    )
-                                ),
+                                    )),
                               ),
-                              ElevatedButton(onPressed: (){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => sup3(firstName: widget.firstName, lastName: widget.lastName, emailAddress:widget.emailAddress, phoneNum: widget.phoneNum, password: widget.password,)),
-                                );
-                                setState(() {
+                              ElevatedButton(
+                                  onPressed: () async {
+                                    PhoneAuthCredential? credential;
 
-                                  cntr+=1;
-                                  print(cntr);
-                                });
+                                    if (code != null && widget.var_id != null) {
+                                      credential = PhoneAuthProvider.credential(verificationId: widget.var_id, smsCode: code);
+                                    } else {
+                                      // Handle the case where code or var_id is null
+                                      // For example, show an error message or return early
+                                      return;
+                                    }
 
-                              }, child: Padding(
-                                padding: const EdgeInsets.only(top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),
-                                child: Text("Next",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w300,fontSize: 18),),
-                              ),
+                                    if (credential != null) {
+                                      await auth.signInWithCredential(credential);
+                                      // The rest of your code...
+                                    }
+
+                                    {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => sup3(firstName: widget.firstName, lastName: widget.lastName, emailAddress: widget.emailAddress, phoneNum: widget.phoneNum, password: widget.password,)),
+                                      );
+                                    }
+
+                                    setState(() {
+                                      cntr += 1;
+                                      print(cntr);
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 8.0,
+                                        bottom: 10.0,
+                                        left: 8.0,
+                                        right: 8.0),
+                                    child: Text(
+                                      "Next",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 18),
+                                    ),
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     //primary: Colors.black,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30)),
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
                                     elevation: 4.0,
-                                  )
-                              ),
+                                  )),
                             ],
                           ),
                         ),
-
                       ],
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 90,left: 90),
+                  padding: const EdgeInsets.only(right: 90, left: 90),
                   child: Row(
                     children: [
-                      Icon(cntr>=2?Icons.check_circle:Icons.circle_outlined,
-                        color: Colors.green,size: 18,),
-                      Expanded(
-                        child: new Container(
-                            margin: const EdgeInsets.only(left: 3.0, right: 3.0),
-                            child: Divider(
-                              color: cntr>=2?Colors.green:Colors.lightGreenAccent,
-                              height: 50,
-                            )),
-                      ),
-                      Icon(cntr>=3?Icons.check_circle:Icons.circle_outlined,
-                        color: cntr>=2?Colors.green:Colors.lightGreenAccent,size: 18,),
-                      Expanded(
-                        child: new Container(
-                            margin: const EdgeInsets.only(left: 3.0, right: 3.0),
-                            child: Divider(
-                              color: cntr>=3?Colors.green:Colors.lightGreenAccent,
-                              height: 50,
-                            )),
-                      ),
-                      Icon(cntr>=4?Icons.check_circle:Icons.circle_outlined,
-                        color: cntr>=3?Colors.green:Colors.lightGreenAccent,size: 18,
+                      Icon(
+                        cntr >= 2 ? Icons.check_circle : Icons.circle_outlined,
+                        color: Colors.green,
+                        size: 18,
                       ),
                       Expanded(
                         child: new Container(
-                            margin: const EdgeInsets.only(left: 3.0, right: 3.0),
+                            margin:
+                                const EdgeInsets.only(left: 3.0, right: 3.0),
                             child: Divider(
-                              color: cntr>=4?Colors.green:Colors.lightGreenAccent,
+                              color: cntr >= 2
+                                  ? Colors.green
+                                  : Colors.lightGreenAccent,
                               height: 50,
                             )),
                       ),
-                      Icon(cntr>=5?Icons.check_circle:Icons.circle_outlined,
-                        color: cntr>=4?Colors.green:Colors.lightGreenAccent,size: 18,),
+                      Icon(
+                        cntr >= 3 ? Icons.check_circle : Icons.circle_outlined,
+                        color:
+                            cntr >= 2 ? Colors.green : Colors.lightGreenAccent,
+                        size: 18,
+                      ),
+                      Expanded(
+                        child: new Container(
+                            margin:
+                                const EdgeInsets.only(left: 3.0, right: 3.0),
+                            child: Divider(
+                              color: cntr >= 3
+                                  ? Colors.green
+                                  : Colors.lightGreenAccent,
+                              height: 50,
+                            )),
+                      ),
+                      Icon(
+                        cntr >= 4 ? Icons.check_circle : Icons.circle_outlined,
+                        color:
+                            cntr >= 3 ? Colors.green : Colors.lightGreenAccent,
+                        size: 18,
+                      ),
+                      Expanded(
+                        child: new Container(
+                            margin:
+                                const EdgeInsets.only(left: 3.0, right: 3.0),
+                            child: Divider(
+                              color: cntr >= 4
+                                  ? Colors.green
+                                  : Colors.lightGreenAccent,
+                              height: 50,
+                            )),
+                      ),
+                      Icon(
+                        cntr >= 5 ? Icons.check_circle : Icons.circle_outlined,
+                        color:
+                            cntr >= 4 ? Colors.green : Colors.lightGreenAccent,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -241,7 +328,6 @@ class _sup2State extends State<sup2> {
         ),
       ),
     );
-      //body: Text("page2 \n Verification"),
-
+    //body: Text("page2 \n Verification"),
   }
 }

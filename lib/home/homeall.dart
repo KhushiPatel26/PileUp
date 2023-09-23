@@ -2,7 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
+import '../startingpgs/login/signin.dart';
+
 class homeall extends StatefulWidget {
+
   const homeall({Key? key}) : super(key: key);
 
   @override

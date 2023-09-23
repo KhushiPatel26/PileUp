@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:pup/project/projdet.dart';
+import 'package:pup/project/projv.dart';
 
 import '../colors.dart';
 
@@ -955,7 +956,7 @@ class projProgress extends StatelessWidget {
                         size: 15,
                         color: Colors.black),
                     onPressed: () async {
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>projdet()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>projv()));
                     },
                   ),
                 ),

@@ -1,5 +1,9 @@
+
+
 import 'package:alphabet_scroll_view/alphabet_scroll_view.dart';
+import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class contact extends StatefulWidget {
   const contact({Key? key}) : super(key: key);
@@ -10,6 +14,23 @@ class contact extends StatefulWidget {
 
 class _contactState extends State<contact> {
   void _incrementCounter() {}
+  List<Contact> contacts = [];
+
+  Future<void> fetchContacts() async {
+    // Request permission to access contacts
+    PermissionStatus permissionStatus = await Permission.contacts.request();
+
+    if (permissionStatus == PermissionStatus.granted) {
+      List<Contact> _contacts =
+      (await ContactsService.getContacts(withThumbnails: false)).toList();
+
+      setState(() {
+         contacts = _contacts;
+      });
+    } else {
+      print('Permission denied');
+    }
+  }
 
   List<String> list = [
     'angel',
@@ -109,7 +130,9 @@ class _contactState extends State<contact> {
         children: [
           Expanded(
             child: AlphabetScrollView(
-              list: list.map((e) => AlphaModel(e)).toList(),
+              list: contacts
+                  .map((contact) => AlphaModel(contact.displayName ?? 'Unknown'))
+                  .toList(),
               // isAlphabetsFiltered: false,
               alignment: LetterAlignment.right,
               itemExtent: 50,
@@ -137,6 +160,7 @@ class _contactState extends State<contact> {
                 ),
               ),
               itemBuilder: (_, k, id) {
+                Contact contact = contacts[k];
                 return Padding(
                   padding: const EdgeInsets.only(right: 20),
                   child: ListTile(
