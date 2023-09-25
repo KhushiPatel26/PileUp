@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:pup/mystuff/note/notepg.dart';
-import 'package:pup/mystuff/note/notes.dart';
-import 'package:pup/mystuff/note/noteview.py.dart';
-import 'package:pup/mystuff/task/taskpg.dart';
+import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:pup/mystuff/note/notes.dart';
+import 'package:pup/mystuff/task/taskpg.dart';
+import 'package:http/http.dart' as http;
+
+import '../DB/ip.dart';
+import '../DB/models.dart';
 class myStuff extends StatefulWidget {
   const myStuff({Key? key}) : super(key: key);
 
@@ -14,11 +18,43 @@ bool visible=true;
 class _myStuffState extends State<myStuff> {
   bool task=true;
 
+  late User? user;
+  late String? uid;
+  List<Userstb> login = [];
+  @override
+  void initState() {
+    super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    user = _auth.currentUser;
+    uid=user!.uid;
+    print("uid:"+uid!);
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    final response = await http.get(Uri.parse('http://$ip:3000/user?email=${user?.email}'));
+
+    if (response.statusCode == 200) {
+      setState(() {
+
+        Iterable list = json.decode(response.body);
+        login=list
+            .map((model) => Userstb.fromJson(model)) // Add a null check here
+            .where((user) => user.uid == uid) // Filter out null users
+            .toList();
+        print(login[0].name);
+      });
+    } else {
+      throw Exception('Failed to load user data'+response.statusCode.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Row(
+      body: login.length==0? Center(child: CircularProgressIndicator()) :
+      Row(
       children: [
         AnimatedSize(
           curve: Curves.easeInOut,

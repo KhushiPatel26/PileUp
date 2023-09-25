@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pup/calendar/calendar.dart';
+
 import 'package:pup/home/homeall.dart';
-import 'package:pup/mystuff/task/addtask.dart';
+
 import 'package:pup/mystuff/mystuff.dart';
 import 'package:pup/people/contact.dart';
 import 'package:pup/people/contactbook.dart';
-import 'package:pup/people/contlist.dart';
+
 import 'package:pup/project/projhome.dart';
-import 'package:pup/helper/pupicon.dart';
+
 import 'package:pup/people/contacts.dart';
-import 'package:pup/startingpgs/login/signin.dart';
-import 'home.dart';
+
+
 
 class homepg extends StatefulWidget {
 
@@ -24,8 +24,8 @@ class homepg extends StatefulWidget {
 class _homepgState extends State<homepg> {
   int _selectedIndex = 0;
   bool isProf=true;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
+  // static const TextStyle optionStyle =
+  // TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static  List _Professional = [
     homeall(),
     myStuff(),//addtask(),

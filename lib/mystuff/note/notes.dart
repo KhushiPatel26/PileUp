@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../mystuff.dart';
 import 'addnote.dart';
 
@@ -57,7 +56,7 @@ class _notesState extends State<notes> {
           Row(
             children: [
               Padding(
-                padding: EdgeInsets.only(top: 16.0,right: 150, left: 20),
+                padding: EdgeInsets.only(top: 16.0, right: visible ? 100 : 150, left: 20),
                 child: Text("My Notes",style: TextStyle(fontSize: 30,color: Colors.black, fontWeight: FontWeight.bold),),
               ),
               Container(

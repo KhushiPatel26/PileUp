@@ -19,7 +19,7 @@ class _signinState extends State<signin> {
   TextEditingController emailController= TextEditingController();
   TextEditingController pwController= TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  List<Users> _users = [];
+  List<Userstb> _users = [];
 
   Future<void> _signInWithEmailAndPassword(String email, String password) async {
     try {
@@ -28,6 +28,10 @@ class _signinState extends State<signin> {
         password: password,
       );
       print('Successfully signed in: ${userCredential.user?.uid}');
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => homepg()));
     } on FirebaseAuthException catch (e) {
       print('Failed to sign in: $e');
     }
@@ -38,7 +42,7 @@ class _signinState extends State<signin> {
     if (response.statusCode == 200) {
       setState(() {
         Iterable list = json.decode(response.body);
-        _users = list.map((model) => Users.fromJson(model)).toList();
+        _users = list.map((model) => Userstb.fromJson(model)).toList();
       });
     }
   }
@@ -322,11 +326,12 @@ else {
           ),
           ElevatedButton(onPressed: () async {
             //await checkCredentials(emailController.text, pwController.text);
-            _signInWithEmailAndPassword(emailController.text, pwController.text);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                builder: (context) => homepg()));
+            //if(emailController.text!='' && pwController.text!=''){}
+
+              _signInWithEmailAndPassword(emailController.text, pwController.text);
+
+
+
           },
               child: Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 10.0, left: 8.0, right: 8.0),

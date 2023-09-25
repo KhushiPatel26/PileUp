@@ -45,6 +45,7 @@ dependencies:
   flutter_staggered_grid_view:
   firebase_auth:
   flutter_otp_text_field:
+  toggle_switch:
 
 
 

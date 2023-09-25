@@ -1,8 +1,14 @@
-import 'dart:math';
+import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:pup/homepg.dart';
+import 'package:pup/mystuff/task/taskpg.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 
+import '../../DB/ip.dart';
 class addtask extends StatefulWidget {
   const addtask({Key? key}) : super(key: key);
 
@@ -11,20 +17,68 @@ class addtask extends StatefulWidget {
 }
 
 class _addtaskState extends State<addtask> {
+  String? uid;
+  @override
+  void initState() {
+    super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
+    // fetchPostsById(uid);
+  }
+
   DateTime _selectedDate = DateTime.now();
-  TextEditingController title = new TextEditingController();
-  TextEditingController note = new TextEditingController();
+  String selectDate='';
+  String priority='Medium';
+  TextEditingController taskName = new TextEditingController();
+  TextEditingController taskDesc = new TextEditingController();
   TextEditingController date = new TextEditingController();
   TextEditingController starttime = new TextEditingController();
   TextEditingController endtime = new TextEditingController();
   TextEditingController remind = new TextEditingController();
   TextEditingController repeat = new TextEditingController();
-  int _selectedcolor=0;
+  TextEditingController category = new TextEditingController();
+  TextEditingController label = new TextEditingController();
+ // int _selectedcolor=0;
   String st = DateFormat("hh:mm a").format(DateTime.now()).toString();
-  String et = "9:30PM";
-  int _remind = 5;
-  List<int> remindlist = [5, 10, 15, 20];
+  String et = DateFormat("hh:mm a").format(DateTime.now()).toString();
+  //String et = "9:30PM";
+  int _remind = 0;
+  bool doremind=false;
+  List<int> remindlist = [0,5, 10, 15, 20];
   List<Color> impcolors = [Color(0xFFDA1240), Color(0xFFF33870),Color(0xFFFD86A2),Color(0xFFEDE0EA)];
+
+  void insertTask() async {
+    var url = 'http://$ip:3000/insertData';
+
+    var data = {
+      'usId': uid.toString(),
+      'taskName': taskName.text,
+      'taskDesc': taskDesc.text,
+      'percent': 0.0,
+      'startDate': st,
+      'dueDate': et,
+      'priority': priority,
+      'remind': doremind?'never':_remind.toString(),
+      'status': 'in progress',
+      'category': category.text,
+      'labels': label.text,
+      'subtask': 'false',
+      'createDate': DateFormat('dd/MM/yyyy').format(_selectedDate),
+    };
+
+    var response = await http.post(Uri.parse(url), headers: {'Content-Type': 'application/json'}, body: json.encode(data));
+
+    if (response.statusCode == 200) {
+      print(data);
+      print('Data sent successfully');
+    } else {
+      print('Error sending data: ${response.statusCode}');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,16 +103,16 @@ class _addtaskState extends State<addtask> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            textf(mtitle: "Task", title: title, hint: "Add title here"),
+            textf(mtitle: "Task", title: taskName, hint: "Add title here"),
             textf(
-              mtitle: "Note",
-              title: note,
+              mtitle: "Description",
+              title: taskDesc,
               hint: "Add Note here",
             ),
 
             textf(
               mtitle: "Date",
-              hint: DateFormat.yMd().format(_selectedDate),
+              hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
               widget: IconButton(
                 icon: Icon(
                   Icons.calendar_month_outlined,
@@ -66,6 +120,9 @@ class _addtaskState extends State<addtask> {
                 ),
                 onPressed: () {
                   getDate();
+                  setState(() {
+                    selectDate=DateFormat('dd/MM/yyyy').format(_selectedDate);
+                  });
                   //DatePickerDialog(initialDate: _selectedDate, firstDate: _selectedDate,);
                 },
               ),
@@ -83,7 +140,7 @@ class _addtaskState extends State<addtask> {
                       color: Colors.black54,
                     ),
                     onPressed: () {
-                      gettime(isStartTime: false);
+                      gettime(isStartTime: true);
                     },
                   ),
                 )),
@@ -105,78 +162,243 @@ class _addtaskState extends State<addtask> {
                 ),
               ],
             ),
-            textf(
-              mtitle: "Remind",
-              title: remind,
-              hint: "$_remind mins early",
-              widget: DropdownButton(
-                icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                iconSize: 32,
-                elevation: 4,
-                onChanged: (String? newvalue) {
-                  setState(() {
-                    _remind = int.parse(newvalue!);
-                  });
+            // Visibility(
+            //   visible: !doremind,
+            //   child: Column(
+            //     children: [
+            //       Padding(
+            //         padding: EdgeInsets.only(top: 15, left: 15, bottom: 5),
+            //         child: Text(
+            //           "Remind",
+            //           style: TextStyle(color: Colors.black),
+            //         ),
+            //       ),
+            //       Padding(
+            //         padding: const EdgeInsets.only(left:20.0),
+            //         child: ToggleSwitch(
+            //           minWidth: 90.0,
+            //           minHeight: 50.0,
+            //           fontSize: 16.0,
+            //           initialLabelIndex: 1,
+            //           activeBgColor: [Colors.black],
+            //           activeFgColor: Colors.white,
+            //           inactiveBgColor: Colors.black26,
+            //           inactiveFgColor: Colors.grey[900],
+            //           totalSwitches: 2,
+            //           animate: true,
+            //           changeOnTap: true,
+            //           animationDuration: 250,
+            //           labels: ['Yes', 'No'],
+            //           onToggle: (index) {
+            //             // setState(() {
+            //             //   priority= index==0?'High':(index==1?'Medium':'Low');
+            //             // });
+            //             doremind=!doremind;
+            //             print('switched to: $doremind');
+            //           },
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            Container(
+              margin: EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: doremind,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        doremind = value!;
+                      });
+                    },
+                    //splashRadius: 210.0,
+                    activeColor: Colors
+                        .black, // Color when checkbox is checked
+                    checkColor: Colors
+                        .white, // Color of the checkmark
+                    materialTapTargetSize: MaterialTapTargetSize
+                        .shrinkWrap, // Remove extra padding
+                    visualDensity: VisualDensity.compact,
+                    side: BorderSide(
+                        color: Colors
+                            .black), // Reduce the checkbox size
+                    shape: CircleBorder(),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0),
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "Do you want reminder?",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                                // decoration: doremind
+                                //     ? TextDecoration
+                                //     .lineThrough
+                                //     : TextDecoration.none,
+                              ),
+                            ),
+                            // SizedBox(
+                            //   width: visible?80:120,
+                            // ),
+                            // Text(
+                            //   "26 Sept",
+                            //   style: TextStyle(
+                            //       color: Colors.black
+                            //           .withOpacity(0.5),
+                            //       fontWeight:
+                            //       FontWeight.w300),
+                            // )
+                          ],
+                        ),
+                        Text(
+                          "you will be notified as per your selected time",
+                          style: TextStyle(
+                            fontSize: 10,
+                              color: Colors.black
+                                  .withOpacity(0.6),
+                              fontWeight: FontWeight.w300),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Visibility(
+              visible: doremind,
+              child: textf(
+                mtitle: "Remind",
+                title: remind,
+                hint: "$_remind mins early",
+                widget: DropdownButton(
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.black),
+                  iconSize: 32,
+                  elevation: 4,
+                  onChanged: (String? newvalue) {
+                    setState(() {
+                      _remind = int.parse(newvalue!);
+                    });
+                  },
+                  items: remindlist.map<DropdownMenuItem<String>>((int value) {
+                    return DropdownMenuItem<String>(
+                      value: value.toString(),
+                      child: Text(value.toString()),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+
+
+
+            // textf(
+            //   mtitle: "Repeat",
+            //   title: repeat,
+            //   hint: "Add title here",
+            // ),
+            Padding(
+              padding: EdgeInsets.only(top: 15, left: 15, bottom: 5),
+              child: Text(
+                "Priority",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.only(left:20.0),
+              child: ToggleSwitch(
+                minWidth: 90.0,
+                minHeight: 50.0,
+                fontSize: 16.0,
+                initialLabelIndex: 1,
+                activeBgColor: [Colors.black],
+                activeFgColor: Colors.white,
+                inactiveBgColor: Colors.black26,
+                inactiveFgColor: Colors.grey[900],
+                totalSwitches: 3,
+                animate: true,
+                changeOnTap: true,
+                animationDuration: 250,
+                labels: ['High', 'Medium', 'Low'],
+                onToggle: (index) {
+                  // setState(() {
+                  //   priority= index==0?'High':(index==1?'Medium':'Low');
+                  // });
+                  priority= index==0?'High':(index==1?'Medium':'Low');
+                  print('switched to: $priority');
                 },
-                items: remindlist.map<DropdownMenuItem<String>>((int value) {
-                  return DropdownMenuItem<String>(
-                    value: value.toString(),
-                    child: Text(value.toString()),
-                  );
-                }).toList(),
               ),
             ),
             textf(
-              mtitle: "Repeat",
-              title: repeat,
-              hint: "Add title here",
+              mtitle: "Category",
+              title: category,
+              hint: "Personal / Office",
+            ),
+            textf(
+              mtitle: "Label",
+              title: label,
+              hint: "Any label",
+            ),
+            SizedBox(
+              height: 20,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Padding(
+                //   padding: const EdgeInsets.all(15.0),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text("Colors",style: TextStyle
+                //         (color: Colors.black),),
+                //       Wrap(
+                //         children: List<Widget>.generate(
+                //           4,
+                //             (int index){
+                //             return GestureDetector(
+                //               onTap: (){
+                //                 setState(() {
+                //                   _selectedcolor=index;
+                //                 });
+                //
+                //               },
+                //               child: Padding(
+                //                 padding: const EdgeInsets.only(right: 8.0),
+                //                 child: CircleAvatar(
+                //                   radius:14,
+                //                   backgroundColor:impcolors[index],//index==0?Color(0xFFEDE0EA):index==1?Colors.pink:Color(0xFFEDE0EA),
+                //                   child:_selectedcolor==index?Icon(Icons.done,
+                //                   color: Colors.black,
+                //                   size: 16,)
+                //
+                //                       :Container(),
+                //                 ),
+                //               ),
+                //             );
+                //
+                //             }
+                //         ),
+                //       )
+                //     ],
+                //   ),
+                // ),
                 Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Colors",style: TextStyle
-                        (color: Colors.black),),
-                      Wrap(
-                        children: List<Widget>.generate(
-                          4,
-                            (int index){
-                            return GestureDetector(
-                              onTap: (){
-                                setState(() {
-                                  _selectedcolor=index;
-                                });
-
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: CircleAvatar(
-                                  radius:14,
-                                  backgroundColor:impcolors[index],//index==0?Color(0xFFEDE0EA):index==1?Colors.pink:Color(0xFFEDE0EA),
-                                  child:_selectedcolor==index?Icon(Icons.done,
-                                  color: Colors.black,
-                                  size: 16,)
-
-                                      :Container(),
-                                ),
-                              ),
-                            );
-
-                            }
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 15.0),
+                  padding: const EdgeInsets.only(left: 20.0),
                   child: Container(height: 40, width: 120,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-                      child: ElevatedButton(onPressed: (){}, child:Text("Create task",style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200),))),
+                      child: ElevatedButton(onPressed: (){
+                        insertTask();
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => homepg()));
+                      }, child:Text("Create task",style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200),))),
                 ),
               ],
             ),
@@ -199,6 +421,7 @@ class _addtaskState extends State<addtask> {
         _selectedDate = _pickerdate;
       });
       print(_selectedDate);
+      print('switched to: $priority');
     }
   }
 
@@ -206,17 +429,32 @@ class _addtaskState extends State<addtask> {
     return showTimePicker(
         initialEntryMode: TimePickerEntryMode.input,
         context: context,
-        initialTime: TimeOfDay(hour: 9, minute: 10));
+        initialTime: TimeOfDay(hour: TimeOfDay.now().hour, minute: TimeOfDay.now().minute));
   }
 
-  gettime({required bool isStartTime}) {
-    var pickedtime = sttimepicker();
-    String formattedtime = pickedtime.format(context);
-    if (pickedtime == null) {
-    } else if (isStartTime == true) {
-      st = formattedtime;
-    } else if (isStartTime == false) {
-      et = formattedtime;
+  gettime({required bool isStartTime}) async {
+    // var pickedtime = sttimepicker();
+    // String formattedtime = pickedtime.format(context);
+    // if (pickedtime == null) {
+    // } else if (isStartTime == true) {
+    //   st = formattedtime;
+    // } else if (isStartTime == false) {
+    //   et = formattedtime;
+    // }
+    TimeOfDay? pickedTime = await sttimepicker();
+
+    if (pickedTime != null) {
+      String formattedTime = pickedTime.format(context);
+
+      if (isStartTime) {
+        setState(() {
+          st = formattedTime;
+        });
+      } else {
+        setState(() {
+          et = formattedTime;
+        });
+      }
     }
   }
 }
@@ -267,7 +505,7 @@ class textf extends StatelessWidget {
                       contentPadding: EdgeInsets.all(10.0),
                       hintStyle: TextStyle(
                         color: Colors.black38,
-                        fontSize: 22,
+                        fontSize: 17, fontWeight: FontWeight.w300
                       ),
                       focusedBorder:
                           UnderlineInputBorder(borderSide: BorderSide.none)),
