@@ -11,9 +11,9 @@ class ToDoTask {
   String priority; //high,low,medium
   final String remind;
   final String status; //in progress, completed, on hold
-  String? category;
+  String category;
   String? labels;
-  String? subtask;
+  final int subtask;
   final String createDate;
 
   ToDoTask({
@@ -27,9 +27,9 @@ class ToDoTask {
     required this.priority,
     required this.remind,
     required this.status,
-    this.category,
+    required this.category,
     this.labels,
-    this.subtask,
+    required this.subtask,
     required this.createDate,
   });
 
@@ -301,23 +301,29 @@ class Reminder {
 }
 
 class Subtask {
+  final int stId;
   final int taskId; // Reference to ToDoTasks taskId
   final String subtaskName;
   final String subtaskDescription;
+  final String priority;
   final String isCompleted;
 
   Subtask({
+    required this.stId,
     required this.taskId,
     required this.subtaskName,
     required this.subtaskDescription,
+    required this.priority,
     required this.isCompleted,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      'stId':stId,
       'taskId': taskId,
       'subtaskName': subtaskName,
       'subtaskDescription': subtaskDescription,
+      'priority': priority,
       'isCompleted': isCompleted,
     };
   }
@@ -325,9 +331,11 @@ class Subtask {
   // Create a Subtask object from a JSON
   factory Subtask.fromJson(Map<String, dynamic> json) {
     return Subtask(
+      stId: json['stId'],
       taskId: json['taskId'],
       subtaskName: json['subtaskName'],
       subtaskDescription: json['subtaskDescription'],
+      priority: json['priority'],
       isCompleted: json['isCompleted'],
     );
   }

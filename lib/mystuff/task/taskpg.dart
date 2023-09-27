@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:pup/mystuff/task/addtask.dart';
@@ -7,9 +9,14 @@ import 'package:pup/mystuff/mystuff.dart';
 import 'package:pup/mystuff/task/showTask.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:pup/mystuff/task/stats_hist.dart';
 import '../../DB/ip.dart';
 import '../../DB/models.dart';
 import '../../colors.dart';
+import '../../home/profile.dart';
+import '../../homepg.dart';
+import '../../main.dart';
+import 'package:pup/notif/notification.dart';
 class ToDoTaskUpdater {
   static Future<void> updatePercentage(int taskId, double newPercentage) async {
     final response = await http.put(
@@ -34,7 +41,6 @@ List<bool> checked = [true, true, false, false, true];
 int _selectedIndex = 0;
 int _selected = 0;
 class _taskpgState extends State<taskpg> {
-
   Future<void> updatePercentage(int taskId, double newPercentage) async {
     try {
       double percentage = newPercentage;
@@ -52,6 +58,7 @@ class _taskpgState extends State<taskpg> {
       if (response.statusCode == 200) {
         print('Percentage updated successfully');
         print('Response body: ${response.body}');
+        fetchTaskData();
       } else {
         print('Failed to update percentage. Status code: ${response.statusCode}');
         print('Response body: ${response.body}');
@@ -66,12 +73,18 @@ class _taskpgState extends State<taskpg> {
   Map<String, List<String>> _tags = {
     "All": [],
     "Personal": ["1", "2", "3"],
-    "Office": ["a", "b", "c"]
+    "College": ["Project", "b", "c"]
   };
+
+  int All=0;
+  int Personal=0;
+  int College=0;
   late User? user;
   late String? uid;
   List<Userstb> login = [];
   List<ToDoTask> todotask = [];
+  List<ToDoTask> tgrp = [];
+  List<ToDoTask> tprog = [];
   @override
   void initState() {
     super.initState();
@@ -83,7 +96,7 @@ class _taskpgState extends State<taskpg> {
     fetchTaskData();
     // fetchPostsById(uid);
   }
-
+  Map<String, int> _tags2={};
 
   Future<void> fetchUserData() async {
     final response = await http.get(Uri.parse('http://$ip:3000/user?email=${user?.email}'));
@@ -107,11 +120,48 @@ class _taskpgState extends State<taskpg> {
     if (response.statusCode == 200) {
       setState(() {
         Iterable list = json.decode(response.body);
+        //tasks
+        All=list
+            .map((model) => ToDoTask.fromJson(model)) // Add a null check here
+            .where((task) => task.usId == uid) // Filter out null users
+            .toList().length;
+        College=list
+            .map((model) => ToDoTask.fromJson(model)) // Add a null check here
+            .where((task) => task.usId == uid && task.category=='College') // Filter out null users
+            .toList().length;
+        Personal=list
+            .map((model) => ToDoTask.fromJson(model)) // Add a null check here
+            .where((task) => task.usId == uid && task.category=='Personal') // Filter out null users
+            .toList().length;
         todotask=list
             .map((model) => ToDoTask.fromJson(model)) // Add a null check here
-            .where((user) => user.usId == uid) // Filter out null users
+            .where((task) => task.usId == uid && task.precent==0.0 && task.subtask==0) // Filter out null users
             .toList();
         print(todotask);
+        //task groups
+        tgrp=list
+            .map((model) => ToDoTask.fromJson(model)) // Add a null check here
+            .where((task) => task.usId == uid && task.subtask>0) // Filter out null users
+            .toList();
+        print("tgrp");
+        print(tgrp);
+        //in progress
+        tprog=list
+            .map((model) => ToDoTask.fromJson(model)) // Add a null check here
+            .where((task) => task.usId == uid && task.precent>0.0 ) // Filter out null users
+            .toList();
+        print("tgrp");
+        print(tprog);
+        _tags2 = {
+          "All": All,
+          "Personal":Personal,
+          "College": College
+        };
+        // _tags = {
+        //   "All": ,
+        //   "Personal": ["1", "2", "3"],
+        //   "College": ["Project", "b", "c"]
+        // };
         for (int i=0;i<todotask.length;i++) {
           print(todotask[i].toJson());
           // Add your code to process the retrieved data
@@ -121,9 +171,10 @@ class _taskpgState extends State<taskpg> {
       throw Exception('Failed to load user data'+response.statusCode.toString());
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return login.length==0? Scaffold(backgroundColor: Colors.white,body: Center(child: CircularProgressIndicator())) : Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
@@ -131,13 +182,21 @@ class _taskpgState extends State<taskpg> {
         leading: Padding(
           padding: const EdgeInsets.only(
               top: 15.0, right: 20.0, left: 8.0, bottom: 8.0),
-          child: CircleAvatar(
-            child: Image.asset(
-              'lib/assets/profile.png',
-              height: 30,
-              width: 30,
+          child: GestureDetector(
+            onTap: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => profile()));
+            },
+            child: CircleAvatar(
+              child: Image.asset(
+                'lib/assets/profile.png',
+                height: 30,
+                width: 30,
+              ),
+              backgroundColor: Colors.white,
             ),
-            backgroundColor: Colors.white,
           ),
         ),
         title: Padding(
@@ -166,7 +225,12 @@ class _taskpgState extends State<taskpg> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0, top: 5),
             child: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => stats_hist()));
+                },
                 icon: Icon(
                   Icons.query_stats,
                   color: Colors.black,
@@ -174,7 +238,7 @@ class _taskpgState extends State<taskpg> {
           )
         ],
       ),
-      body:  login.isEmpty? Center(child: CircularProgressIndicator()) :
+      body:
       SafeArea(
         child: Column(
           children: [
@@ -191,6 +255,7 @@ class _taskpgState extends State<taskpg> {
                         fontWeight: FontWeight.bold),
                   ),
                 ),
+
                 Container(
                   height: 35,
                   width: 35,
@@ -211,6 +276,18 @@ class _taskpgState extends State<taskpg> {
                 ),
               ],
             ),
+
+            // todotask.length==0?
+            // Center(
+            //   child: Column(
+            //     children: [
+            //       SizedBox(height: 50,),
+            //       Image.asset('lib/assets/img_2.png',width: 250,height: 270,),
+            //       Text('There are no tasks, you are up-to date!', style: TextStyle(color: Colors.black,fontWeight: FontWeight.w300),)
+            //     ],
+            //   ),
+            // ) :
+
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -249,6 +326,10 @@ class _taskpgState extends State<taskpg> {
                                     //   context,
                                     //   MaterialPageRoute(builder: (context) => homepg()),
                                     // );
+                                    // NotificationAppLaunchDetails? notificationAppLaunchDetails = null;
+                                    //  HomePage homePageInstance = HomePage(notificationAppLaunchDetails);
+
+
                                   },
                                   child: Text(
                                     "View Tasks",
@@ -265,6 +346,7 @@ class _taskpgState extends State<taskpg> {
                                     elevation: 4.0,
                                   )),
                             ]),
+
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: CircularPercentIndicator(
@@ -321,7 +403,7 @@ class _taskpgState extends State<taskpg> {
                             Wrap(
                               spacing: 1,
                               direction: Axis.horizontal,
-                              children: choiceChips(_tags),
+                              children: choiceChips(_tags2),
                             ),
                           ],
                         ),
@@ -330,6 +412,7 @@ class _taskpgState extends State<taskpg> {
                     SingleChildScrollView(
                       child: Column(
                         children: [
+                          //if(tprog.length!=0)
                           Padding(
                             padding: EdgeInsets.only(
                                 top: 16.0,
@@ -365,6 +448,7 @@ class _taskpgState extends State<taskpg> {
                               ],
                             ),
                           ),
+                         // if(tprog.length!=0)
                           Padding(
                             padding: const EdgeInsets.only(top: 10.0, left: 20),
                             child: SingleChildScrollView(
@@ -391,6 +475,7 @@ class _taskpgState extends State<taskpg> {
                               ),
                             ),
                           ),
+                          if(tgrp.length!=0)
                           Padding(
                             padding: EdgeInsets.only(
                                 top: 16.0,
@@ -411,7 +496,7 @@ class _taskpgState extends State<taskpg> {
                                         left: 5,
                                         right: 5),
                                     child: Text(
-                                      " 2 ",
+                                      tgrp.length.toString(),
                                       style: TextStyle(
                                           fontSize: 13,
                                           color: Colors.black,
@@ -426,26 +511,32 @@ class _taskpgState extends State<taskpg> {
                               ],
                             ),
                           ),
+                          if(tgrp.length!=0)
+                            for(int i=0;i<tgrp.length;i++)
                           taskGrp(
-                            date: '26',
-                            mon: 'Sep',
-                            taskName: 'PileUp App',
-                            noSubT: 5,
-                            tag: 'College',
-                            desc: 'App Development...',
-                            col: pink,
-                            per: 0.2,
+                            date: tgrp[i].createDate.split('/')[0],
+                            mon: DateFormat('MMM').format(DateFormat('dd/MM/yyyy').parse(tgrp[i].createDate)),
+                            taskName: tgrp[i].taskName,
+                            noSubT: tgrp[i].subtask,
+                            tag: tgrp[i].category,
+                            desc: tgrp[i].taskDesc,
+                            col: tgrp[i].precent==100? Colors.black.withOpacity(0.2):tgrp[0].priority=='High'? red
+                                : tgrp[0].priority=='Medium'? orange
+                                : yellow,
+                            per: 0.3,
+                            todotask: tgrp, index: i,
                           ),
-                          taskGrp(
-                            date: '29',
-                            mon: 'Sep',
-                            taskName: 'Kerberos PPT',
-                            noSubT: 2,
-                            tag: 'College',
-                            desc: 'Presentation...',
-                            col: brown,
-                            per: 0.01,
-                          ),
+                          // taskGrp(
+                          //   date: '29',
+                          //   mon: 'Sep',
+                          //   taskName: 'Kerberos PPT',
+                          //   noSubT: 2,
+                          //   tag: 'College',
+                          //   desc: 'Presentation...',
+                          //   col: brown,
+                          //   per: 0.01,
+                          // ),
+                          if(todotask.length!=0)
                           Padding(
                             padding: EdgeInsets.only(
                                 top: 16.0,
@@ -466,7 +557,7 @@ class _taskpgState extends State<taskpg> {
                                         left: 5,
                                         right: 5),
                                     child: Text(
-                                      " 3 ",
+                                      todotask.length.toString(),
                                       style: TextStyle(
                                           fontSize: 13,
                                           color: Colors.black,
@@ -481,173 +572,173 @@ class _taskpgState extends State<taskpg> {
                               ],
                             ),
                           ),
-
                           for(int i=0;i<todotask.length;i++)
-                            taskslist(context,todotask[i].taskName,todotask[i].taskDesc,todotask[i].createDate, todotask[i].precent, todotask[i].taskId, todotask[i].priority),
+                            taskslist(context,i,todotask[i].taskName,todotask[i].taskDesc,todotask[i].createDate, todotask[i].precent, todotask[i].taskId, todotask[i].priority),
+
                           // taskslist(context),
                           // taskslist(context),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                right: 20.0, left: 20, top: 10),
-                            child: Container(
-                                decoration: BoxDecoration(
-                                  color: checked[1]
-                                      ? Colors.black.withOpacity(0.1)
-                                      : orange,
-                                  borderRadius: BorderRadius.circular(10),
-                                  // border: Border(right: BorderSide(color: Colors.red, width: 1))
-                                ),
-                                child: Container(
-                                  margin: EdgeInsets.all(10),
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: checked[1],
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            checked[1] = value!;
-                                          });
-                                        },
-                                        //splashRadius: 210.0,
-                                        activeColor: Colors
-                                            .black, // Color when checkbox is checked
-                                        checkColor: Colors
-                                            .white, // Color of the checkmark
-                                        materialTapTargetSize: MaterialTapTargetSize
-                                            .shrinkWrap, // Remove extra padding
-                                        visualDensity: VisualDensity.compact,
-                                        side: BorderSide(
-                                            color: Colors
-                                                .black), // Reduce the checkbox size
-                                        shape: CircleBorder(),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "taskName",
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 18,
-                                                    decoration: checked[0]
-                                                        ? TextDecoration
-                                                        .lineThrough
-                                                        : TextDecoration.none,
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: visible?80:120,
-                                                ),
-                                                Text(
-                                                  "26 Sept",
-                                                  style: TextStyle(
-                                                      color: Colors.black
-                                                          .withOpacity(0.5),
-                                                      fontWeight:
-                                                      FontWeight.w300),
-                                                )
-                                              ],
-                                            ),
-                                            Text(
-                                              "desc",
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
-                                                  fontWeight: FontWeight.w300),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                right: 20.0, left: 20, top: 10),
-                            child: Container(
-                                decoration: BoxDecoration(
-                                  color: checked[2]
-                                      ? Colors.black.withOpacity(0.1)
-                                      : yellow,
-                                  borderRadius: BorderRadius.circular(10),
-                                  // border: Border(right: BorderSide(color: Colors.red, width: 1))
-                                ),
-                                child: Container(
-                                  margin: EdgeInsets.all(10),
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: checked[2],
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            checked[2] = value!;
-                                          });
-                                        },
-                                        //splashRadius: 210.0,
-                                        activeColor: Colors
-                                            .black, // Color when checkbox is checked
-                                        checkColor: Colors
-                                            .white, // Color of the checkmark
-                                        materialTapTargetSize: MaterialTapTargetSize
-                                            .shrinkWrap, // Remove extra padding
-                                        visualDensity: VisualDensity.compact,
-                                        side: BorderSide(
-                                            color: Colors
-                                                .black), // Reduce the checkbox size
-                                        shape: CircleBorder(),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 8.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "taskName",
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 18,
-                                                    decoration: checked[0]
-                                                        ? TextDecoration
-                                                        .lineThrough
-                                                        : TextDecoration.none,
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: visible?80:120,
-                                                ),
-                                                Text(
-                                                  "26 Sept",
-                                                  style: TextStyle(
-                                                      color: Colors.black
-                                                          .withOpacity(0.5),
-                                                      fontWeight:
-                                                      FontWeight.w300),
-                                                )
-                                              ],
-                                            ),
-                                            Text(
-                                              "desc",
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
-                                                  fontWeight: FontWeight.w300),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                          ),
+                          // Padding(
+                          //   padding: EdgeInsets.only(
+                          //       right: 20.0, left: 20, top: 10),
+                          //   child: Container(
+                          //       decoration: BoxDecoration(
+                          //         color: checked[1]
+                          //             ? Colors.black.withOpacity(0.1)
+                          //             : orange,
+                          //         borderRadius: BorderRadius.circular(10),
+                          //         // border: Border(right: BorderSide(color: Colors.red, width: 1))
+                          //       ),
+                          //       child: Container(
+                          //         margin: EdgeInsets.all(10),
+                          //         child: Row(
+                          //           children: [
+                          //             Checkbox(
+                          //               value: checked[1],
+                          //               onChanged: (bool? value) {
+                          //                 setState(() {
+                          //                   checked[1] = value!;
+                          //                 });
+                          //               },
+                          //               //splashRadius: 210.0,
+                          //               activeColor: Colors
+                          //                   .black, // Color when checkbox is checked
+                          //               checkColor: Colors
+                          //                   .white, // Color of the checkmark
+                          //               materialTapTargetSize: MaterialTapTargetSize
+                          //                   .shrinkWrap, // Remove extra padding
+                          //               visualDensity: VisualDensity.compact,
+                          //               side: BorderSide(
+                          //                   color: Colors
+                          //                       .black), // Reduce the checkbox size
+                          //               shape: CircleBorder(),
+                          //             ),
+                          //             Padding(
+                          //               padding: EdgeInsets.only(left: 8.0),
+                          //               child: Column(
+                          //                 crossAxisAlignment:
+                          //                 CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   Row(
+                          //                     children: [
+                          //                       Text(
+                          //                         "taskName",
+                          //                         style: TextStyle(
+                          //                           color: Colors.black,
+                          //                           fontSize: 18,
+                          //                           decoration: checked[0]
+                          //                               ? TextDecoration
+                          //                               .lineThrough
+                          //                               : TextDecoration.none,
+                          //                         ),
+                          //                       ),
+                          //                       SizedBox(
+                          //                         width: visible?80:120,
+                          //                       ),
+                          //                       Text(
+                          //                         "26 Sept",
+                          //                         style: TextStyle(
+                          //                             color: Colors.black
+                          //                                 .withOpacity(0.5),
+                          //                             fontWeight:
+                          //                             FontWeight.w300),
+                          //                       )
+                          //                     ],
+                          //                   ),
+                          //                   Text(
+                          //                     "desc",
+                          //                     style: TextStyle(
+                          //                         color: Colors.black
+                          //                             .withOpacity(0.6),
+                          //                         fontWeight: FontWeight.w300),
+                          //                   )
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       )),
+                          // ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //       right: 20.0, left: 20, top: 10),
+                          //   child: Container(
+                          //       decoration: BoxDecoration(
+                          //         color: checked[2]
+                          //             ? Colors.black.withOpacity(0.1)
+                          //             : yellow,
+                          //         borderRadius: BorderRadius.circular(10),
+                          //         // border: Border(right: BorderSide(color: Colors.red, width: 1))
+                          //       ),
+                          //       child: Container(
+                          //         margin: EdgeInsets.all(10),
+                          //         child: Row(
+                          //           children: [
+                          //             Checkbox(
+                          //               value: checked[2],
+                          //               onChanged: (bool? value) {
+                          //                 setState(() {
+                          //                   checked[2] = value!;
+                          //                 });
+                          //               },
+                          //               //splashRadius: 210.0,
+                          //               activeColor: Colors
+                          //                   .black, // Color when checkbox is checked
+                          //               checkColor: Colors
+                          //                   .white, // Color of the checkmark
+                          //               materialTapTargetSize: MaterialTapTargetSize
+                          //                   .shrinkWrap, // Remove extra padding
+                          //               visualDensity: VisualDensity.compact,
+                          //               side: BorderSide(
+                          //                   color: Colors
+                          //                       .black), // Reduce the checkbox size
+                          //               shape: CircleBorder(),
+                          //             ),
+                          //             Padding(
+                          //               padding: EdgeInsets.only(left: 8.0),
+                          //               child: Column(
+                          //                 crossAxisAlignment:
+                          //                 CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   Row(
+                          //                     children: [
+                          //                       Text(
+                          //                         "taskName",
+                          //                         style: TextStyle(
+                          //                           color: Colors.black,
+                          //                           fontSize: 18,
+                          //                           decoration: checked[0]
+                          //                               ? TextDecoration
+                          //                               .lineThrough
+                          //                               : TextDecoration.none,
+                          //                         ),
+                          //                       ),
+                          //                       SizedBox(
+                          //                         width: visible?80:120,
+                          //                       ),
+                          //                       Text(
+                          //                         "26 Sept",
+                          //                         style: TextStyle(
+                          //                             color: Colors.black
+                          //                                 .withOpacity(0.5),
+                          //                             fontWeight:
+                          //                             FontWeight.w300),
+                          //                       )
+                          //                     ],
+                          //                   ),
+                          //                   Text(
+                          //                     "desc",
+                          //                     style: TextStyle(
+                          //                         color: Colors.black
+                          //                             .withOpacity(0.6),
+                          //                         fontWeight: FontWeight.w300),
+                          //                   )
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //       )),
+                          // ),
                         ],
                       ),
                     ),
@@ -674,11 +765,11 @@ class _taskpgState extends State<taskpg> {
     );
   }
 
-  GestureDetector taskslist(BuildContext context, String taskName, String taskDesc, String duedate, double taskper, int taskid, String priority) {
+  GestureDetector taskslist(BuildContext context,int i, String taskName, String taskDesc, String duedate, double taskper, int taskid, String priority) {
     return GestureDetector(
                           onTap: (){
                             Navigator.push(context,
-                                MaterialPageRoute(builder: (context) => showTask()));
+                                MaterialPageRoute(builder: (context) => showTask(todotask: todotask[i],)));
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -696,7 +787,7 @@ class _taskpgState extends State<taskpg> {
                                   child: Row(
                                     children: [
                                       Checkbox(
-                                        value: taskper == 0 ? false : true,
+                                        value: false,
                                         onChanged: (bool? value) {
 
                                             double per = value! ? 100.0 : 0.0;
@@ -736,7 +827,7 @@ class _taskpgState extends State<taskpg> {
                                                   style: TextStyle(
                                                     color: Colors.black,
                                                     fontSize: 18,
-                                                    decoration: checked[0]
+                                                    decoration: taskper == 100
                                                         ? TextDecoration
                                                             .lineThrough
                                                         : TextDecoration.none,
@@ -783,7 +874,7 @@ class _taskpgState extends State<taskpg> {
               label: Row(
                 children: [
                   Text(
-                    _tags.keys.elementAt(i), //_choiceChipsList[],
+                    _tags2.keys.elementAt(i), //_choiceChipsList[],
                     style: TextStyle(fontWeight: FontWeight.w300),
                   ),
                   Padding(
@@ -794,7 +885,7 @@ class _taskpgState extends State<taskpg> {
                       width: 22,
                       child: Center(
                         child: Text(
-                          '5',
+                          _tags2.values.elementAt(i).toString(),
                           style: TextStyle(
                               fontFamily: 'Readex Pro',
                               color: Colors.black,
@@ -917,8 +1008,8 @@ class taskProg extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: (){
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => showTask()));
+        // Navigator.push(context,
+        //     MaterialPageRoute(builder: (context) => showTask()));
       },
       child: Container(
         width: 120,
@@ -1019,7 +1110,8 @@ class taskGrp extends StatelessWidget {
   final String desc;
   final Color col;
   final double per;
-
+  final List<ToDoTask> todotask;
+  final int index;
   const taskGrp(
       {super.key,
       required this.date,
@@ -1029,7 +1121,7 @@ class taskGrp extends StatelessWidget {
       required this.tag,
       required this.desc,
       required this.col,
-      required this.per});
+      required this.per, required this.todotask, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -1039,7 +1131,7 @@ class taskGrp extends StatelessWidget {
         child: GestureDetector(
           onTap: (){
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => showTask()));
+                MaterialPageRoute(builder: (context) => showTask(todotask: todotask[index],)));
           },
           child: Container(
             width: visible ? 305 : 350,

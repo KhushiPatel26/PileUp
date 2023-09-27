@@ -105,9 +105,20 @@ class _sup2State extends State<sup2> {
                                     EdgeInsetsDirectional.fromSTEB(0, 32, 0, 0),
                                 child: OtpTextField(
                                   numberOfFields: 6,
-
-                                  showFieldAsBox: false,
-                                  borderWidth: 4.0,
+                                  decoration: InputDecoration(
+                                    counter: Offstage(),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(width: 0.7, color: Colors.black12),
+                                        borderRadius: BorderRadius.circular(20)),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(width: 0.5, color: Colors.black),
+                                        borderRadius: BorderRadius.circular(20)),
+                                  ),
+                                  showFieldAsBox: true,
+                                  focusedBorderColor: Colors.black,
+                                  borderWidth: 1,
+                                  textStyle: TextStyle(color: Colors.black),
+                                  borderRadius: BorderRadius.circular(10),
                                   //runs when a code is typed in
                                   onCodeChanged: (String code) {
                                     //handle validation or checks here if necessary

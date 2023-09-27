@@ -45,7 +45,8 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: fnameError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red, context: context,
+            //backgroundColor: Colors.red.withOpacity(0.5),
+            context: context,
           );
           return false;
         }
@@ -58,7 +59,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: emailError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+            //backgroundColor: Colors.red,
           );
           return false;
         } else if (!emailRegex.hasMatch(emailAddressController.text)) {
@@ -68,7 +69,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: emailError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+           // backgroundColor: Colors.red,
           );
           return false;
         }
@@ -80,7 +81,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: phoneNumberError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+           // backgroundColor: Colors.red,
           );
           return false;
         } else if (phoneNumController.text.length != 10) {
@@ -90,7 +91,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: phoneNumberError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+           // backgroundColor: Colors.red,
           );
           return false;
         }
@@ -104,7 +105,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: passwordError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+           // backgroundColor: Colors.red,
           );
           return false;
         } else if (!passwordRegex.hasMatch(passwordController.text)) {
@@ -115,7 +116,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: passwordError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+          //  backgroundColor: Colors.red,
           );
           return false;
         }
@@ -127,7 +128,7 @@ import 'package:flutter/material.dart';
             title: 'Validation Error',
             message: confirmPasswordError!,
             contentType: ContentType.failure,
-            backgroundColor: Colors.red,
+           // backgroundColor: Colors.red,
           );
           return false;
         }
@@ -819,11 +820,11 @@ void _showSnackBar({
   required String title,
   required String message,
   required ContentType contentType,
-  required Color backgroundColor,
+  //required Color backgroundColor,
 }) {
   final snackBar = SnackBar(
     behavior: SnackBarBehavior.floating,
-    backgroundColor: backgroundColor,
+   // backgroundColor: backgroundColor,
     elevation: 0,
     content: AwesomeSnackbarContent(
       title: title,

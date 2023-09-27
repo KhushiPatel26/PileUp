@@ -33,6 +33,10 @@ dependencies:
     sdk: flutter
   anim_search_bar: ^2.0.3
   flutter_local_notifications: ^15.1.1
+  device_info_plus:
+  image:
+  timezone:
+  flutter_timezone:
   google_fonts: 4.0.3
   badges:
   intl:
@@ -59,7 +63,7 @@ dependencies:
   carousel_slider:
   http:
   image_picker:
-  contacts_service: ^0.6.3
+ # contacts_service: ^0.6.3
   fast_contacts: ^3.0.3
   permission_handler: ^11.0.0
   scroll_to_hide: ^2.0.1
@@ -72,6 +76,7 @@ dependencies:
   shared_preferences:
   awesome_snackbar_content:
   firebase_core: ^2.16.0
+  url_launcher:
 
 dev_dependencies:
   flutter_test:

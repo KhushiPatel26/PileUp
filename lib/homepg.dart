@@ -43,7 +43,7 @@ class _homepgState extends State<homepg> {
     myStuff(),//addtask(),
     homeall(),
    // projhome(),
-    contact()//home(),
+    contacts()//home(),
     //home(),
     //mystuff(),
     //projects(),

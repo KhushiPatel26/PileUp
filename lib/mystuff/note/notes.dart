@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../home/profile.dart';
 import '../mystuff.dart';
 import 'addnote.dart';
 
@@ -18,13 +19,21 @@ class _notesState extends State<notes> {
         backgroundColor: Colors.white,
         leading: Padding(
           padding: const EdgeInsets.only(top:15.0,right: 20.0,left: 8.0,bottom: 8.0),
-          child: CircleAvatar(
-            child: Image.asset(
-              'lib/assets/profile.png',
-              height: 30,
-              width: 30,
+          child: GestureDetector(
+            onTap: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => profile()));
+            },
+            child: CircleAvatar(
+              child: Image.asset(
+                'lib/assets/profile.png',
+                height: 30,
+                width: 30,
+              ),
+              backgroundColor: Colors.white,
             ),
-            backgroundColor: Colors.white,
           ),
         ),
         title: Padding(

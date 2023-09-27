@@ -64,7 +64,7 @@ class _addtaskState extends State<addtask> {
       'status': 'in progress',
       'category': category.text,
       'labels': label.text,
-      'subtask': 'false',
+      'subtask': 0,
       'createDate': DateFormat('dd/MM/yyyy').format(_selectedDate),
     };
 

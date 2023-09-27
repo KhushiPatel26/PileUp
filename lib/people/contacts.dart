@@ -1,7 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fast_contacts/fast_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:math';
 
+import 'contview.dart';
 class contacts extends StatefulWidget {
   const contacts({Key? key}) : super(key: key);
 
@@ -37,13 +40,14 @@ class _contactsState extends State<contacts> {
     _contacts?.sort((a, b) {
       return (a.displayName ?? '').toLowerCase().compareTo((b.displayName ?? '').toLowerCase());
     });
-
+    final _random = Random();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text("Contacts"),
       ),
-      body: _contacts != null
+      body:
+      _contacts != null
           ? ListView.builder(
         itemCount: _contacts!.length,
         itemBuilder: (context, index) {
@@ -57,22 +61,38 @@ class _contactsState extends State<contacts> {
             return SizedBox.shrink();
           }
 
-          return ListTile(
-            leading: CircleAvatar(
-              radius: 20,
-              child: Icon(Icons.person),
-            ),
-            title: Text(
-              contact.displayName ?? 'Unknown',
-              style: TextStyle(color: Colors.black),
-            ),
-            subtitle: Column(
-              children: [
-                Text(
-                  contact.phones[0].number,
-                  style: TextStyle(color: Colors.black),
+          return Padding(
+            padding: const EdgeInsets.only(left: 15,right: 15,top: 8.0),
+            child: GestureDetector(
+              onTap: (){
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => contview( contact:contact,)));
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: CupertinoColors.systemGrey2.withOpacity(0.2),
                 ),
-              ],
+                child: ListTile(
+                  leading: CircleAvatar(
+                    radius: 20,
+                    child: Text(contact.displayName[0]),//Icon(Icons.person),
+                    // Text(documentSnapshot['p_first'].toString().toUpperCase()[0]),
+                    backgroundColor: Colors.primaries[_random.nextInt(Colors.primaries.length)]
+                    [_random.nextInt(9) * 100],
+                    foregroundColor: Colors.primaries[_random.nextInt(Colors.primaries.length)]
+                    [_random.nextInt(9) * 200],
+                  ),
+                  title: Text(
+                    contact.displayName ?? 'Unknown',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  subtitle: Text(
+                    contact.phones[0].number,
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
             ),
           );
         },
