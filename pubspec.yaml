@@ -77,6 +77,11 @@ dependencies:
   awesome_snackbar_content:
   firebase_core: ^2.16.0
   url_launcher:
+  quill_html_editor:
+  flutter_colorpicker:
+  omni_datetime_picker: ^1.0.9
+  syncfusion_flutter_signaturepad:
+  syncfusion_flutter_pdf:
 
 dev_dependencies:
   flutter_test:

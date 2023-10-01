@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pup/mystuff/note/ntbook.dart';
 import '../../home/profile.dart';
 import '../mystuff.dart';
 import 'addnote.dart';
@@ -75,8 +76,77 @@ class _notesState extends State<notes> {
                     color: Colors.black,
                     borderRadius: BorderRadius.all(Radius.circular(30))
                 ),
-                child: IconButton(onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>addnote()));
+                child: IconButton(onPressed: ()async {
+                  await showDialog<void>(
+                      context: context,
+                      builder: (context) =>
+                          Container(
+                            height: 600,
+                            width: 720,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 80.0),
+                                  child: AlertDialog(
+                                    shape: CircleBorder(side: BorderSide(color: Colors.black)),
+                                    backgroundColor: Colors.white,
+                                    content: GestureDetector(
+                                      onTap: (){
+                                        Navigator.pop(context);
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => addnote()));
+                                      },
+                                      child: Container(
+                                       // height: 200,
+                                        //width: 90,
+                                        child: Column(
+                                          children: [
+                                            Image.asset("lib/assets/makeanote.png",width: 70,height: 90,),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Text("Make a Note",style: TextStyle(color: Colors.black,fontSize: 12),),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 150.0,left: 90),
+                                  child: AlertDialog(
+                                    shape: CircleBorder(side: BorderSide(color: Colors.black)),
+                                    backgroundColor: Colors.white,
+                                    content:  GestureDetector(
+                                      onTap: (){
+                                        Navigator.pop(context);
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => ntbook()));
+                                      },
+                                      child: Container(
+                                        // height: 200,
+                                        // width: 100,
+                                        child: Column(
+                                          children: [
+                                            Image.asset("lib/assets/makenotebook.png",width: 70,height: 90,),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Text("Make a Notebook",style: TextStyle(color: Colors.black,fontSize: 12),),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ));
+                  //Navigator.push(context, MaterialPageRoute(builder: (context)=>addnote()));
                 }, icon:Icon(Icons.add, color: Colors.white,size: 15,),),
               ),
             ],

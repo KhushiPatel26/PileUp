@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:pup/DB/fetch.dart';
 import 'package:pup/DB/models.dart';
 import 'package:pup/homepg.dart';
@@ -461,6 +462,17 @@ print(isdone+" "+stId.toString());
                 ],
               ),
             ),
+            // LinearPercentIndicator(
+            //   //width: visible ? 220 : 276,
+            //     animation: true,
+            //     animationDuration: 100,
+            //     lineHeight: 3.0,
+            //     percent: ,
+            //     //center: Text("20.0%"),
+            //     linearStrokeCap: LinearStrokeCap.butt,
+            //     progressColor: Colors.blueGrey,
+            //     backgroundColor: Colors.transparent //Colors.red,
+            // ),
             for(int i=0;i<subtask.length;i++)
               taskslist(context,i,subtask[i].subtaskName,subtask[i].subtaskDescription,subtask[i].priority, subtask[i].isCompleted),
           ],

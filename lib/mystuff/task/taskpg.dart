@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -14,9 +13,7 @@ import '../../DB/ip.dart';
 import '../../DB/models.dart';
 import '../../colors.dart';
 import '../../home/profile.dart';
-import '../../homepg.dart';
-import '../../main.dart';
-import 'package:pup/notif/notification.dart';
+
 class ToDoTaskUpdater {
   static Future<void> updatePercentage(int taskId, double newPercentage) async {
     final response = await http.put(
@@ -37,7 +34,7 @@ class taskpg extends StatefulWidget {
   @override
   State<taskpg> createState() => _taskpgState();
 }
-List<bool> checked = [true, true, false, false, true];
+//List<bool> checked = [true, true, false, false, true];
 int _selectedIndex = 0;
 int _selected = 0;
 class _taskpgState extends State<taskpg> {

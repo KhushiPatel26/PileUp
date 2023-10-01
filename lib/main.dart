@@ -1,5 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pup/DB/perform_crud2.dart';
+import 'package:pup/DB/perform_crud.dart';
+import 'package:pup/DB/perform_curd3.dart';
+import 'package:pup/mystuff/note/addnote.dart';
 import 'package:pup/startingpgs/welcome.dart';
 import 'package:pup/themes/dark_theme.dart';
 import 'package:pup/themes/light_theme.dart';
@@ -7,6 +11,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'firebase_options.dart';
 import 'homepg.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'mystuff/note/SignaturePadPage.dart';
+import 'mystuff/note/quill.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -29,12 +36,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );//number bollllll oyyeee
+  );
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: lightTheme,
     darkTheme: darkTheme,
-    home: AuthenticationWrapper(),//signin(),//signin(),//homepg()//Homepage(),//projv()//SplashScreenPage(),////MyLogin(),//reg(),
+    home: AuthenticationWrapper(),//SignaturePadPage(),//perform_crud3(),//AuthenticationWrapper(),//signin(),//signin(),//homepg()//Homepage(),//projv()//SplashScreenPage(),////MyLogin(),//reg(),
     /*routes: {
       'welcome':(context)=>welcome(),
       'signup': (context) => signup(),

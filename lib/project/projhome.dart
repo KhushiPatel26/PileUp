@@ -8,6 +8,7 @@ import 'package:pup/project/projdet.dart';
 import 'package:pup/project/projv.dart';
 
 import '../colors.dart';
+import '../home/profile.dart';
 
 class projhome extends StatefulWidget {
   const projhome({Key? key}) : super(key: key);
@@ -37,42 +38,66 @@ class _projhomeState extends State<projhome> {
                 padding: EdgeInsets.only(
                     top: 40,
                     left: 15), //EdgeInsetsDirectional.fromSTEB(0, 25, 0, 0),
-                child: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Hi, ',
-                        style: TextStyle(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Hi, ',
+                            style: TextStyle(
+                              fontFamily: 'Readex Pro',
+                              //color: Colors.black54,//FlutterFlowTheme.of(context).primaryText,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.black
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Khushi\n',
+                            style: TextStyle(
+                              color: Colors.black54, //FlutterFlowTheme.of(context).primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'You Have\n',
+                            style: TextStyle(fontSize: 21, color: Colors.black),
+                          ),
+                          TextSpan(
+                            text: '4 Projects',
+                            style: TextStyle(
+                                fontSize: 25,
+                                color: Colors.black),
+                          )
+                        ],
+                        style: TextStyle(decoration: TextDecoration.underline,
                           fontFamily: 'Readex Pro',
-                          //color: Colors.black54,//FlutterFlowTheme.of(context).primaryText,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w300,
-                          color: Colors.black
                         ),
                       ),
-                      TextSpan(
-                        text: 'Khushi\n',
-                        style: TextStyle(
-                          color: Colors.black54, //FlutterFlowTheme.of(context).primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'You Have\n',
-                        style: TextStyle(fontSize: 21, color: Colors.black),
-                      ),
-                      TextSpan(
-                        text: '4 Projects',
-                        style: TextStyle(
-                            fontSize: 25,
-                            color: Colors.black),
-                      )
-                    ],
-                    style: TextStyle(decoration: TextDecoration.underline,
-                      fontFamily: 'Readex Pro',
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 40.0,right: 20),
+                      child: GestureDetector(
+                        onTap: (){
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => profile()));
+                        },
+                        child: CircleAvatar(
+                          child: Image.asset(
+                            'lib/assets/profile.png',
+                            height: 30,
+                            width: 30,
+                          ),
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ),
             ),

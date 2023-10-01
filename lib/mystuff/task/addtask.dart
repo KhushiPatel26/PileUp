@@ -17,6 +17,7 @@ class addtask extends StatefulWidget {
 }
 
 class _addtaskState extends State<addtask> {
+
   String? uid;
   @override
   void initState() {
@@ -48,7 +49,13 @@ class _addtaskState extends State<addtask> {
   bool doremind=false;
   List<int> remindlist = [0,5, 10, 15, 20];
   List<Color> impcolors = [Color(0xFFDA1240), Color(0xFFF33870),Color(0xFFFD86A2),Color(0xFFEDE0EA)];
-
+  final List<String> items = [
+    'Item1',
+    'Item2',
+    'Item3',
+    'Item4',
+  ];
+  String? selectedValue;
   void insertTask() async {
     var url = 'http://$ip:3000/insertData';
 
@@ -78,7 +85,7 @@ class _addtaskState extends State<addtask> {
     }
   }
 
-
+  String _chosenValue="Please choose a Category";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -336,6 +343,43 @@ class _addtaskState extends State<addtask> {
                 },
               ),
             ),
+            DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                isExpanded: true,
+                hint: Text(
+                  'Select Item',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+                items: items
+                    .map((String item) => DropdownMenuItem<String>(
+                  value: item,
+                 // height: 40,
+                  child: Text(
+                    item,
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ))
+                    .toList(),
+                value: selectedValue,
+                onChanged: (String? value) {
+                  setState(() {
+                    selectedValue = value;
+                  });
+                },
+                //
+                // buttonStyleData: const ButtonStyleData(
+                //   padding: EdgeInsets.symmetric(horizontal: 16),
+                //   height: 40,
+                //   width: 140,
+                // ),
+              ),
+            ),
+
             textf(
               mtitle: "Category",
               title: category,

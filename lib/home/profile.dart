@@ -1,11 +1,6 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pup/startingpgs/welcome.dart';
-import 'package:http/http.dart' as http;
-
-import '../DB/ip.dart';
 import '../DB/models.dart';
 
 class profile extends StatefulWidget {
@@ -20,8 +15,11 @@ class _profileState extends State<profile> {
   late String? uid;
   // Map<String, dynamic>? userData;
   //late Userstb userData;
-  List<Userstb> items = [];
-  List<Userstb> login = [];
+  // List<Userstb> items = [];
+  // List<Userstb> login = [];
+  List<Userstb> _profile = [];
+  final ApiService_Userstb apiService = ApiService_Userstb();
+
   @override
   void initState() {
     super.initState();
@@ -29,37 +27,45 @@ class _profileState extends State<profile> {
     user = _auth.currentUser;
     uid=user!.uid;
     print("uid:"+uid!);
-    fetchUserData();
+    //fetchUserData();
+    _fetchData();
     // fetchPostsById(uid);
   }
 
-  Future<void> fetchUserData() async {
-    final response = await http.get(Uri.parse('http://$ip:3000/user?email=${user?.email}'));
-
-    if (response.statusCode == 200) {
-      setState(() {
-
-        Iterable list = json.decode(response.body);
-        // items = list
-        //     .map((model) => Userstb.fromJson(model)) // Add a null check here
-        //     .where((user) => user != null) // Filter out null users
-        //     .toList();
-        // print(items[0].name);
-        login=list
-            .map((model) => Userstb.fromJson(model)) // Add a null check here
-            .where((user) => user.uid == uid) // Filter out null users
-            .toList();
-        print(login[0].name);
-      });
-
-      // final Map<String, dynamic> userDataJson = json.decode(response.body);
-      // setState(() {
-      //   userData = Userstb.fromJson(userDataJson);
-      // });
-    } else {
-      throw Exception('Failed to load user data'+response.statusCode.toString());
-    }
+  Future<void> _fetchData() async {
+    final data = await apiService.readRecords('users');
+    setState(() {
+      _profile = data.where((user) => user.uid==uid).toList();
+    });
+    print("PROFILE..........");
+    print(_profile[0].uid.toString() +" "+_profile[0].name);
   }
+  // Future<void> fetchUserData() async {
+  //   final response = await http.get(Uri.parse('http://$ip:3000/user?email=${user?.email}'));
+  //
+  //   if (response.statusCode == 200) {
+  //     setState(() {
+  //
+  //       Iterable list = json.decode(response.body);
+  //       // items = list
+  //       //     .map((model) => Userstb.fromJson(model)) // Add a null check here
+  //       //     .where((user) => user != null) // Filter out null users
+  //       //     .toList();
+  //       // print(items[0].name);
+  //       login=list
+  //           .map((model) => Userstb.fromJson(model)) // Add a null check here
+  //           .where((user) => user.uid == uid) // Filter out null users
+  //           .toList();
+  //     });
+  //
+  //     // final Map<String, dynamic> userDataJson = json.decode(response.body);
+  //     // setState(() {
+  //     //   userData = Userstb.fromJson(userDataJson);
+  //     // });
+  //   } else {
+  //     throw Exception('Failed to load user data'+response.statusCode.toString());
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +78,7 @@ class _profileState extends State<profile> {
           Navigator.of(context).pop();
         },),
       ),
-      body: login.length==0? Center(child: CircularProgressIndicator()) :
+      body: _profile.length==0? Center(child: CircularProgressIndicator()) :
       Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,8 +88,9 @@ class _profileState extends State<profile> {
             child: Image.asset("lib/assets/profile.png"),
             radius: 20,
           ),
-          Text(login[0].name,style: TextStyle(color: Colors.black),),
-          Text(items.length.toString(),style: TextStyle(color: Colors.black),),
+          Text(_profile[0].name,style: TextStyle(color: Colors.black),),
+          Text(_profile[0].userType,style: TextStyle(color: Colors.black),),
+          Text(_profile[0].phoneNumber,style: TextStyle(color: Colors.black),),
           Text(user?.email ?? 'N/A',style: TextStyle(color: Colors.black),),
           Text(user?.uid ?? 'N/A',style: TextStyle(color: Colors.black),),
           ElevatedButton(onPressed: ()async {

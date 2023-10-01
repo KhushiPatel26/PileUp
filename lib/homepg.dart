@@ -4,12 +4,15 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pup/home/homeall.dart';
 
 import 'package:pup/mystuff/mystuff.dart';
+import 'package:pup/people/cont.dart';
 import 'package:pup/people/contact.dart';
 import 'package:pup/people/contactbook.dart';
 
 import 'package:pup/project/projhome.dart';
 
 import 'package:pup/people/contacts.dart';
+
+import 'calendar/cal.dart';
 
 
 
@@ -27,11 +30,13 @@ class _homepgState extends State<homepg> {
   // static const TextStyle optionStyle =
   // TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static  List _Professional = [
+    cal(),
     homeall(),
     myStuff(),//addtask(),
     projhome(),
-    contactBook(),
-    contacts()//contlist()//contact()//home(),
+   //contactBook(),
+    cont()
+    //contacts()//contlist()//contact()//home(),
     //home(),
     //mystuff(),
     //projects(),
@@ -39,10 +44,11 @@ class _homepgState extends State<homepg> {
     //people(),
   ];
   static const List _Personal = [
-    contactBook(),
-    myStuff(),//addtask(),
+    //contactBook(),
+    //addtask(),
     homeall(),
-   // projhome(),
+    myStuff(),
+    cal(),// projhome(),
     contacts()//home(),
     //home(),
     //mystuff(),
