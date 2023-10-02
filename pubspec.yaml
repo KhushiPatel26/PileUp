@@ -69,7 +69,7 @@ dependencies:
   scroll_to_hide: ^2.0.1
   sticky_headers: ^0.3.0+2
   flutter_clean_calendar:
-  table_calendar:
+  table_calendar: ^3.0.1
   line_icons: ^2.0.1
   path_provider: ^2.0.15
   flutter_slidable: ^3.0.0
@@ -82,6 +82,7 @@ dependencies:
   omni_datetime_picker: ^1.0.9
   syncfusion_flutter_signaturepad:
   syncfusion_flutter_pdf:
+  pdf:
 
 dev_dependencies:
   flutter_test:

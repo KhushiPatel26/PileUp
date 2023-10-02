@@ -6,4 +6,4 @@ var brown=Color(0xFFEDEBDE);
 var blue=Color(0xFFDEECEC);
 var orange=Color(0xFFECE0DE);
 var red=Color(0xFFECDEDE);
-var yellow=Color(0xFFECE9DE);
+var yellow=Color(0xE5ECE9DE);

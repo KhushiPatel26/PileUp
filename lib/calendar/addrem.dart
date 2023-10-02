@@ -1,10 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:intl/intl.dart';
+import 'package:line_icons/line_icons.dart';
+import 'package:omni_datetime_picker/omni_datetime_picker.dart';
+import 'package:pup/DB/models.dart';
 import 'package:pup/colors.dart';
+import 'package:pup/homepg.dart';
+
+import '../DB/ApiService3.dart';
 
 class addrem extends StatefulWidget {
-  const addrem({Key? key}) : super(key: key);
+  final DateTime selecteddt;
+  const addrem({Key? key, required this.selecteddt}) : super(key: key);
 
   @override
   State<addrem> createState() => _addremState();
@@ -25,6 +33,39 @@ class _addremState extends State<addrem> {
   DateTime _selectedDate = DateTime.now();
   String selectDate = '';
   Color remcolor = brown;
+  bool isevent=true;
+  DateTime? duedate;
+  DateTime? stdate;
+
+  ApiService3 api = ApiService3();
+
+  Future<void> _insert() async {
+    final record = Reminder(uid: uid.toString(),
+      rname: remName.text,
+      rdesc: remNote.text,
+      isEvent: isevent.toString(),
+      startDate: stdate.toString(),
+      dueDate: duedate.toString(),
+      doRem: doremind.toString(),
+      remTime: _remind.toString(),
+      color: remcolor.value.toString(),
+    );
+    await api.createRecord('Reminder', record.toJson());
+    print("done");
+  }
+
+  String? uid;
+  @override
+  void initState() {
+    super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
+    stdate=widget.selecteddt;
+    // fetchPostsById(uid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,70 +82,278 @@ class _addremState extends State<addrem> {
           },
         ),
         title: Text(
-          "Add Task",
+          "Add Reminder / Event",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
         ),
       ),
       body: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          textf(mtitle: "Reminder", title: remName, hint: "Add title here"),
+          textf(mtitle: "Name", title: remName, hint: "Add title here"),
           textf(
             mtitle: "Reminder Note",
             title: remNote,
             hint: "Add Note here",
           ),
-          textf(
-            mtitle: "Date",
-            hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
-            widget: IconButton(
-              icon: Icon(
-                Icons.calendar_month_outlined,
-                color: Colors.black54,
-              ),
-              onPressed: () {
-                getDate();
-                setState(() {
-                  selectDate = DateFormat('dd/MM/yyyy').format(_selectedDate);
-                });
-                //DatePickerDialog(initialDate: _selectedDate, firstDate: _selectedDate,);
-              },
+          Container(
+            margin: EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: isevent,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      isevent = value!;
+                      stdate=widget.selecteddt;
+                    });
+                  },
+                  //splashRadius: 210.0,
+                  activeColor: Colors.black, // Color when checkbox is checked
+                  checkColor: Colors.white, // Color of the checkmark
+                  materialTapTargetSize:
+                  MaterialTapTargetSize.shrinkWrap, // Remove extra padding
+                  visualDensity: VisualDensity.compact,
+                  side: BorderSide(
+                      color: Colors.black), // Reduce the checkbox size
+                  shape: CircleBorder(),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            "Do you want to set due date?",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                              // decoration: doremind
+                              //     ? TextDecoration
+                              //     .lineThrough
+                              //     : TextDecoration.none,
+                            ),
+                          ),
+                          // SizedBox(
+                          //   width: visible?80:120,
+                          // ),
+                          // Text(
+                          //   "26 Sept",
+                          //   style: TextStyle(
+                          //       color: Colors.black
+                          //           .withOpacity(0.5),
+                          //       fontWeight:
+                          //       FontWeight.w300),
+                          // )
+                        ],
+                      ),
+                      Text(
+                        "event will occur all day so it will not have a due date",
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.black.withOpacity(0.6),
+                            fontWeight: FontWeight.w300),
+                      )
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                  child: textf(
-                mtitle: "Start Time",
-                title: starttime,
-                hint: st,
-                widget: IconButton(
-                  icon: Icon(
-                    Icons.access_time,
-                    color: Colors.black54,
-                  ),
-                  onPressed: () {
-                    gettime(isStartTime: true);
-                  },
-                ),
-              )),
-              Expanded(
-                child: textf(
-                  mtitle: "End Time",
-                  title: endtime,
-                  hint: et,
-                  widget: IconButton(
-                    icon: Icon(
-                      Icons.access_time,
-                      color: Colors.black54,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Seleted Date:",
+                      style: TextStyle(color: Colors.black),
                     ),
-                    onPressed: () {
-                      gettime(isStartTime: false);
-                    },
-                  ),
+                    Text("Start: $stdate",
+                        style: TextStyle(color: Colors.black.withOpacity(0.5))),
+                    Visibility(
+                      visible: isevent,
+                      child: Text("End: $duedate",
+                          style: TextStyle(color: Colors.black.withOpacity(0.5))),
+                    )
+                  ],
                 ),
-              ),
-            ],
+                Container(
+                    decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        border: Border.all(color: Colors.black, width: 0.7),
+                        borderRadius: BorderRadius.circular(30)),
+                    child: IconButton(
+                        onPressed: () async {
+                          if(isevent){
+                            List<DateTime>? dateTimeList =
+                            await showOmniDateTimeRangePicker(
+                              context: context,
+                              startInitialDate: DateTime.now(),
+                              startFirstDate: DateTime(1600)
+                                  .subtract(const Duration(days: 3652)),
+                              startLastDate: DateTime.now().add(
+                                const Duration(days: 3652),
+                              ),
+                              endInitialDate: DateTime.now(),
+                              endFirstDate: DateTime(1600)
+                                  .subtract(const Duration(days: 3652)),
+                              endLastDate: DateTime.now().add(
+                                const Duration(days: 3652),
+                              ),
+                              is24HourMode: false,
+                              isShowSeconds: false,
+                              minutesInterval: 1,
+                              secondsInterval: 1,
+                              isForce2Digits: true,
+                              borderRadius:
+                              const BorderRadius.all(Radius.circular(16)),
+                              constraints: const BoxConstraints(
+                                maxWidth: 350,
+                                maxHeight: 650,
+                              ),
+                              transitionBuilder: (context, anim1, anim2, child) {
+                                return FadeTransition(
+                                  opacity: anim1.drive(
+                                    Tween(
+                                      begin: 0,
+                                      end: 1,
+                                    ),
+                                  ),
+                                  child: child,
+                                );
+                              },
+                              transitionDuration:
+                              const Duration(milliseconds: 200),
+                              barrierDismissible: true,
+                              selectableDayPredicate: (dateTime) {
+                                // Disable 25th Feb 2023
+                                if (dateTime == DateTime(2023, 2, 25)) {
+                                  return false;
+                                } else {
+                                  return true;
+                                }
+                              },
+                            );
+                            setState(() {
+                              stdate=dateTimeList![0];
+                              duedate=dateTimeList?[1];
+                            });
+                            print("Start dateTime: ${dateTimeList?[0]}");
+                            print("End dateTime: ${dateTimeList?[1]}");
+                          }
+                          else{
+                            DateTime? dateTime = await showOmniDateTimePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1600)
+                                  .subtract(const Duration(days: 3652)),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 3652),
+                              ),
+                              is24HourMode: false,
+                              isShowSeconds: false,
+                              minutesInterval: 1,
+                              secondsInterval: 1,
+                              isForce2Digits: true,
+                              borderRadius:
+                              const BorderRadius.all(Radius.circular(16)),
+                              constraints: const BoxConstraints(
+                                maxWidth: 350,
+                                maxHeight: 650,
+                              ),
+                              transitionBuilder:
+                                  (context, anim1, anim2, child) {
+                                return FadeTransition(
+                                  opacity: anim1.drive(
+                                    Tween(
+                                      begin: 0,
+                                      end: 1,
+                                    ),
+                                  ),
+                                  child: child,
+                                );
+                              },
+                              transitionDuration:
+                              const Duration(milliseconds: 200),
+                              barrierDismissible: true,
+                              selectableDayPredicate: (dateTime) {
+                                // Disable 25th Feb 2023
+                                if (dateTime == DateTime(2023, 2, 25)) {
+                                  return false;
+                                } else {
+                                  return true;
+                                }
+                              },
+                            );
+                            setState(() {
+                              stdate=dateTime!;
+                            });
+                            print("dateTime: $dateTime");
+                          }
+                        },
+                        icon: Icon(
+                          LineIcons.calendarAlt,
+                          color: Colors.black,
+                        )))
+              ],
+            ),
           ),
+          // textf(
+          //   mtitle: "Date",
+          //   hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
+          //   widget: IconButton(
+          //     icon: Icon(
+          //       Icons.calendar_month_outlined,
+          //       color: Colors.black54,
+          //     ),
+          //     onPressed: () {
+          //       getDate();
+          //       setState(() {
+          //         selectDate = DateFormat('dd/MM/yyyy').format(_selectedDate);
+          //       });
+          //       //DatePickerDialog(initialDate: _selectedDate, firstDate: _selectedDate,);
+          //     },
+          //   ),
+          // ),
+          // Row(
+          //   children: [
+          //     Expanded(
+          //         child: textf(
+          //       mtitle: "Start Time",
+          //       title: starttime,
+          //       hint: st,
+          //       widget: IconButton(
+          //         icon: Icon(
+          //           Icons.access_time,
+          //           color: Colors.black54,
+          //         ),
+          //         onPressed: () {
+          //           gettime(isStartTime: true);
+          //         },
+          //       ),
+          //     )),
+          //     Expanded(
+          //       child: textf(
+          //         mtitle: "End Time",
+          //         title: endtime,
+          //         hint: et,
+          //         widget: IconButton(
+          //           icon: Icon(
+          //             Icons.access_time,
+          //             color: Colors.black54,
+          //           ),
+          //           onPressed: () {
+          //             gettime(isStartTime: false);
+          //           },
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
           Container(
             margin: EdgeInsets.all(10),
             child: Row(
@@ -210,6 +459,7 @@ class _addremState extends State<addrem> {
                                   setState(() {
                                     remcolor = value;
                                   });
+                                  print(remcolor);
                                 },
                               ),
                             ),
@@ -239,18 +489,25 @@ class _addremState extends State<addrem> {
               padding: const EdgeInsets.only(top: 8, left: 230),
               child: ElevatedButton(
                 onPressed: () {
+
+                  _insert();
+
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       backgroundColor: Colors.black,
                       content: Text(
-                        'NoteBook Added',
+                        'Reminder Added',
                         style: TextStyle(color: Colors.white),
                       )));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => homepg()));
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(
                       top: 15.0, bottom: 15.0, left: 3.0, right: 3.0),
                   child: Text(
-                    "Set Reminder",
+                    "Add",
                     style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w400,

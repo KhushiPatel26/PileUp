@@ -1,5 +1,6 @@
 import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:pup/people/addcont.dart';
 
 import '../home/profile.dart';
 
@@ -42,7 +43,12 @@ class _contState extends State<cont> {
         actions: [
           Padding(
               padding: const EdgeInsets.only(right: 3.0),
-              child: IconButton(icon: Icon(Icons.add,color: Colors.black,), onPressed: (){},)
+              child: IconButton(icon: Icon(Icons.add,color: Colors.black,), onPressed: (){
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => addcont()));
+              },)
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

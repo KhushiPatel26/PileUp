@@ -1,6 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:line_icons/line_icon.dart';
+import 'package:pup/DB/models.dart';
+import 'package:pup/colors.dart';
 import 'package:pup/mystuff/note/notepgs.dart';
+
+import '../../DB/ApiService3.dart';
 
 class ntbook extends StatefulWidget {
   const ntbook({Key? key}) : super(key: key);
@@ -11,14 +17,50 @@ class ntbook extends StatefulWidget {
 
 class _ntbookState extends State<ntbook> {
   TextEditingController nbnameController = TextEditingController();
+  TextEditingController nbpw = TextEditingController();
+  String category='personal';
+  String label='label';
+  bool isimp=false;
   Color nbcolor=Colors.black.withOpacity(0.8);
+
+  ApiService3 api = ApiService3();
+
+  Future<void> _insert() async {
+    final record = Notebook(uid: uid.toString(),
+      nbname: nbnameController.text,
+      nbcategory: category,
+      nblabel: label,
+      isimp: isimp.toString(),
+      nbcreate: DateTime.now().toString(),
+      pw: nbpw.text,
+        nbcolor: nbcolor.value.toString()
+    );
+    await api.createRecord('Notebook', record.toJson());
+    print("done");
+  }
+
+  String? uid;
+  @override
+  void initState() {
+    super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
+    // fetchPostsById(uid);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {
+
+            Navigator.pop(context);
+          },
           icon: Icon(Icons.arrow_back_outlined),
         ),
         title: Text(
@@ -38,6 +80,23 @@ class _ntbookState extends State<ntbook> {
             child: Column(
               //crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Align(
+                  alignment: AlignmentDirectional.topEnd,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        IconButton(onPressed: (){
+                          setState(() {
+                            isimp=!isimp;
+                          });
+                        },
+                            icon: isimp?Icon(Icons.star,color: yellow,):Icon(Icons.star_outline_outlined,color: Colors.black12,)),
+                        Text("Mark as\n important",style: TextStyle(color: Colors.black12,fontSize: 10,),)
+                      ],
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 30.0),
                   child: Container(
@@ -182,7 +241,7 @@ class _ntbookState extends State<ntbook> {
                       ],
                     ),
                     child: TextFormField(
-                        controller: nbnameController,
+                        controller: nbpw,
                         autofocus: true,
                         decoration: InputDecoration(
                           labelText: 'Category',
@@ -302,6 +361,7 @@ class _ntbookState extends State<ntbook> {
                     padding: const EdgeInsets.all(8),
                     child: ElevatedButton(
                       onPressed: () {
+                        _insert();
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             backgroundColor: Colors.black,
                             content: Text(

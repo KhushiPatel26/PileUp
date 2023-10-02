@@ -344,41 +344,57 @@ class ApiService_ProjMem extends ApiService2<ProjMem> {
 }
 
 class Reminder {
-  String remId;
-  String userId;
-  String description;
-  DateTime eventDate;
-  bool doRemind;
-  DateTime? remindTime;
+  int? rid; // Reminder ID
+  String uid; // User ID
+  String rname; // Reminder Name
+  String? rdesc; // Reminder Description
+  String isEvent; // Is an Event (yes/no)
+  String startDate;
+  String? dueDate;
+  String doRem; // Do Reminder (yes/no)
+  String? remTime; // Reminder Time
+  String color; // Color
 
   Reminder({
-    required this.remId,
-    required this.userId,
-    required this.description,
-    required this.eventDate,
-    required this.doRemind,
-    this.remindTime,
+    this.rid,
+    required this.uid,
+    required this.rname,
+    this.rdesc,
+    required this.isEvent,
+    required this.startDate,
+    this.dueDate,
+    required this.doRem,
+    this.remTime,
+    required this.color,
   });
 
   factory Reminder.fromJson(Map<String, dynamic> json) {
     return Reminder(
-      remId: json['remId'],
-      userId: json['userId'],
-      description: json['description'],
-      eventDate: DateTime.parse(json['eventDate']),
-      doRemind: json['doRemind'],
-      remindTime: json['remindTime'],
+      rid: json['rid'],
+      uid: json['uid'],
+      rname: json['rname'],
+      rdesc: json['rdesc'],
+      isEvent: json['isevent'],
+      startDate: json['startdate'],
+      dueDate: json['duedate'],
+      doRem: json['dorem'],
+      remTime: json['remtime'],
+      color: json['color'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'remId': remId,
-      'userId': userId,
-      'description': description,
-      'eventDate': eventDate.toIso8601String(),
-      'doRemind': doRemind,
-      'remindTime': remindTime,
+      'rid': rid,
+      'uid': uid,
+      'rname': rname,
+      'rdesc': rdesc,
+      'isevent': isEvent,
+      'startdate': startDate,
+      'duedate': dueDate,
+      'dorem': doRem,
+      'remtime': remTime,
+      'color': color,
     };
   }
 }
@@ -491,4 +507,192 @@ class ApiService_Contact extends ApiService2<Contact> {
   Contact dataFromJson(Map<String, dynamic> json) {
     return Contact.fromJson(json);
   }
+}
+
+class Note {
+  int? nid;
+  String uid;
+  String? ntitle;
+  String? ncontent;
+  String? nbgcolor;
+  String ncreate;
+  String? ncategory;
+  String? nlabel;
+  String ispw;
+  String? pw;
+String ispinned;
+  Note({
+    this.nid,
+    required this.uid,
+    this.ntitle,
+    this.ncontent,
+    this.nbgcolor,
+    required this.ncreate,
+    this.ncategory,
+    this.nlabel,
+    required this.ispw,
+    this.pw,
+    required this.ispinned
+  });
+
+  factory Note.fromJson(Map<String, dynamic> json) => Note(
+    nid: json['nid'],
+    uid: json['uid'],
+    ntitle: json['ntitle'],
+    ncontent: json['ncontent'],
+    nbgcolor: json['nbgcolor'],
+    ncreate: json['ncreate'],
+    ncategory: json['ncategory'],
+    nlabel: json['nlabel'],
+    ispw: json['ispw'],
+    pw: json['pw'],
+    ispinned: json['ispinned']
+  );
+
+  Map<String, dynamic> toJson() => {
+    'nid': nid,
+    'uid': uid,
+    'ntitle': ntitle,
+    'ncontent': ncontent,
+    'nbgcolor': nbgcolor,
+    'ncreate': ncreate,
+    'ncategory': ncategory,
+    'nlabel': nlabel,
+    'ispw': ispw,
+    'pw': pw,
+    'ispinned': ispinned,
+  };
+}
+
+
+class Notebook {
+  int? nbid;
+  String uid;
+  String nbname;
+  String? nbcategory;
+  String? nblabel;
+  String? nbcolor;
+  String nbcreate;
+  String pw;
+  String isimp;
+
+  Notebook({
+    this.nbid,
+    required this.uid,
+    required this.nbname,
+    this.nbcategory,
+    this.nblabel,
+    this.nbcolor,
+    required this.nbcreate,
+    required this.pw,
+    required this.isimp,
+  });
+
+  factory Notebook.fromJson(Map<String, dynamic> json) => Notebook(
+    nbid: json['nbid'],
+    uid: json['uid'],
+    nbname: json['nbname'],
+    nbcategory: json['nbcategory'],
+    nblabel: json['nblabel'],
+    nbcolor: json['nbcolor'],
+    nbcreate: json['nbcreate'],
+    pw: json['pw'],
+    isimp: json['isimp'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'nbid': nbid,
+    'uid': uid,
+    'nbname': nbname,
+    'nbcategory': nbcategory,
+    'nblabel': nblabel,
+    'nbcolor': nbcolor,
+    'nbcreate': nbcreate,
+    'pw': pw,
+    'isimp': isimp,
+  };
+}
+
+class NotebookPage {
+  int? npgid;
+  int nbid;
+  String? pgtitle;
+  String? pgcontent;
+  String? pgbgcolor;
+  String pgcreate;
+
+  NotebookPage({
+    this.npgid,
+    required this.nbid,
+    this.pgtitle,
+    this.pgcontent,
+    this.pgbgcolor,
+    required this.pgcreate,
+  });
+
+  factory NotebookPage.fromJson(Map<String, dynamic> json) => NotebookPage(
+    npgid: json['npgid'],
+    nbid: json['nbid'],
+    pgtitle: json['pgtitle'],
+    pgcontent: json['pgcontent'],
+    pgbgcolor: json['pgbgcolor'],
+    pgcreate: json['pgcreate'],
+  );
+
+  Map<String, dynamic> toJson() => {
+    'npgid': npgid,
+    'nbid': nbid,
+    'pgtitle': pgtitle,
+    'pgcontent': pgcontent,
+    'pgbgcolor': pgbgcolor,
+    'pgcreate': pgcreate,
+  };
+}
+
+class PSContact {
+  int? cid; // Contact ID (Auto-incremented in the database)
+  String uid; // User ID
+  String fname; // First name
+  String? lname; // Last name
+  int phnnum; // Phone number
+  String? email; // Email
+  String? category; // Category
+  String? label; // Label
+
+  PSContact({
+    this.cid,
+    required this.uid,
+    required this.fname,
+    this.lname,
+    required this.phnnum,
+    this.email,
+    this.category,
+    this.label,
+  });
+
+  factory PSContact.fromMap(Map<String, dynamic> map) {
+    return PSContact(
+      cid: map['cid'],
+      uid: map['uid'],
+      fname: map['fname'],
+      lname: map['lname'],
+      phnnum: map['phnnum'],
+      email: map['email'],
+      category: map['category'],
+      label: map['label'],
+    );
+  }
+
+  Map<String, dynamic> toJson() =>{
+
+      'cid': cid,
+      'uid': uid,
+      'fname': fname,
+      'lname': lname,
+      'phnnum': phnnum,
+      'email': email,
+      'category': category,
+      'label': label,
+
+  };
 }

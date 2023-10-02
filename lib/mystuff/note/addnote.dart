@@ -1,13 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pup/DB/models.dart';
 import 'package:pup/colors.dart';
 import 'package:pup/mystuff/note/sketch.dart';
 import 'package:pup/mystuff/note/viewnote.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 
+import '../../DB/ApiService3.dart';
 import 'notes.dart';
 
 class addnote extends StatefulWidget {
-  const addnote({Key? key}) : super(key: key);
+  final fromnb;
+  final nbid;
+  const addnote({Key? key, required this.fromnb, this.nbid}) : super(key: key);
 
   @override
   State<addnote> createState() => _addnoteState();
@@ -88,6 +93,7 @@ class _addnoteState extends State<addnote> {
       fontSize: 18, color: Colors.black38, fontWeight: FontWeight.normal);
 
   bool _hasFocus = false;
+  String? uid;
   @override
   void initState() {
     controller = QuillEditorController();
@@ -98,6 +104,10 @@ class _addnoteState extends State<addnote> {
     //   debugPrint('Editor Loaded :)');
     // });
     super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
   }
 
   @override
@@ -109,7 +119,10 @@ class _addnoteState extends State<addnote> {
 
   TextEditingController title = TextEditingController();
   TextEditingController hinttxt = TextEditingController();
-  TextEditingController tag = TextEditingController();
+  //TextEditingController tag = TextEditingController();
+  String category='';
+  String label='';
+  String content='';
   bool isPinned = false;
   TextEditingController notepwController = TextEditingController();
   List<Color> bgcolorlist = [
@@ -128,6 +141,35 @@ class _addnoteState extends State<addnote> {
   Color _backgroundColor = Color(0xFF212121);
   bool maintoolbox=true;
   List<ToolBarStyle> toolList=[];
+
+  ApiService3 api = ApiService3();
+
+  Future<void> _insert() async {
+    final record = Note(
+      uid: uid.toString(),
+        ntitle: title.text,
+      ncreate: DateTime.now().toString(),
+      ncategory: category,
+      nlabel: label,
+      nbgcolor: _backgroundColor.value.toString(),
+      ncontent:content,
+      ispw: notepwController.text.isEmpty?'false':'true',
+      pw: notepwController.text,
+        ispinned: isPinned.toString()
+    );
+    await api.createRecord('notes', record.toJson());
+    print("notes inserted");
+  }
+
+  // Future<void> _insertnbpg() async {
+  //   final record = NotebookPage(
+  //       nbid: null,
+  //       pgcreate: DateTime.now().toString();
+  //   );
+  //   await api.createRecord('notebookpage', record.toJson());
+  //   print("notebook pg inserted");
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,6 +178,9 @@ class _addnoteState extends State<addnote> {
         title: Text(''),
         leading: IconButton(
           onPressed: () async {
+
+            content=await controller.getText();
+            _insert();
             SnackBar(content: Text('note saved'));
             Navigator.pop(
               context,
@@ -447,7 +492,7 @@ class _addnoteState extends State<addnote> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => viewnote()));
+                                      builder: (context) => viewnote(title: title.text,controller1: controller,bgcolor: _backgroundColor)));
                             },
                           ),
                           ListTile(
@@ -461,7 +506,8 @@ class _addnoteState extends State<addnote> {
                               style: TextStyle(color: Colors.white),
                             ),
                             onTap: () {
-                              Navigator.pop(context);
+                              Navigator.pop((context));
+                              Navigator.pop((context));
                             },
                           ),
                         ],
@@ -1069,6 +1115,10 @@ class _addnoteState extends State<addnote> {
             style: TextStyle(color: _toolbarColor),
           )),
     );
+  }
+
+  void htmltext() async{
+    content=await controller.getText();
   }
 
   ///[getHtmlText] to get the html text from editor

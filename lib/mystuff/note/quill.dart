@@ -73,7 +73,7 @@ class _quillState extends State<quill> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => addnote()));
+                    builder: (context) => addnote(fromnb: false,)));
           },
           icon: Icon(Icons.arrow_back_outlined),
           ),

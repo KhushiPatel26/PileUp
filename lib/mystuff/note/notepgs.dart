@@ -100,7 +100,7 @@ class _notepgsState extends State<notepgs> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => addnote()));
+                  builder: (context) => addnote(fromnb:true, )));
         },
         backgroundColor: Colors.black,
         child: Icon(

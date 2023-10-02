@@ -30,11 +30,11 @@ class _homepgState extends State<homepg> {
   // static const TextStyle optionStyle =
   // TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static  List _Professional = [
-    cal(),
     homeall(),
     myStuff(),//addtask(),
     projhome(),
    //contactBook(),
+    cal(),
     cont()
     //contacts()//contlist()//contact()//home(),
     //home(),

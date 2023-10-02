@@ -436,14 +436,68 @@ class _addtaskState extends State<addtask> {
                 // ),
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
-                  child: Container(height: 40, width: 120,
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-                      child: ElevatedButton(onPressed: (){
-                        insertTask();
-                        Navigator.push(context,
+                  child: Container(
+                    height: 40,
+                    width: 120,
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (taskName.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter task name'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else if (date.text=='') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter date'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else if (st.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter start time'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else if (et.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter enter end time'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else if (category.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter category'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else if (label.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please enter label'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
+                          // All conditions are met, navigate to next page
+                          insertTask();
+                          Navigator.push(context,
                             MaterialPageRoute(builder: (context) => homepg()));
-                      }, child:Text("Create task",style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200),))),
-                ),
+                        }
+                      },
+                      child: Text(
+                        "Create task",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200),
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ],
