@@ -343,21 +343,21 @@ class _sup3State extends State<sup3> {
                                       (getcomp == true || incomp == true)))
                               ? () async {
 
-                            UserCredential cred = await _auth.createUserWithEmailAndPassword(
-                                email: widget.emailAddress, password:  widget.password);
+                          //  UserCredential cred = await _auth.createUserWithEmailAndPassword(
+                           //      email: widget.emailAddress, password:  widget.password);
                            //String _uid= cred.user!.uid;
-                            String _uid = cred.user?.uid ?? "";
-                            print("UIDUIDUIUDI:......"+_uid);
-                                  print(userType);
-                                 // insert();
-                                  createUser(
-                                      widget.firstName+" "+widget.lastName,
-                                      widget.emailAddress,
-                                      widget.phoneNum,
-                                      widget.password,
-                                      userType,
-                                      _uid
-                                  );
+                           //  String _uid = cred.user?.uid ?? "";
+                           //  print("UIDUIDUIUDI:......"+_uid);
+                           //        print(userType);
+                           //       // insert();
+                           //        createUser(
+                           //            widget.firstName+" "+widget.lastName,
+                           //            widget.emailAddress,
+                           //            widget.phoneNum,
+                           //            widget.password,
+                           //            userType,
+                           //            _uid
+                           //        );
 
                                   if (per == true) {
 
@@ -368,7 +368,11 @@ class _sup3State extends State<sup3> {
                                               firstName: widget.firstName,
                                               lastName: widget.lastName,
                                               emailAddress: widget.emailAddress,
-                                              phoneNum: widget.phoneNum)),
+                                              phoneNum: widget.phoneNum,
+                                              password: widget.password,
+                                              userType: userType,
+                                             // uid: _uid
+                                          )),
                                     );
                                   } else if (getcomp == true && comp == true) {
                                     Navigator.push(
@@ -378,7 +382,11 @@ class _sup3State extends State<sup3> {
                                               firstName: widget.firstName,
                                               lastName: widget.lastName,
                                               emailAddress: widget.emailAddress,
-                                              phoneNum: widget.phoneNum)),
+                                              phoneNum: widget.phoneNum,
+                                              password: widget.password,
+                                              userType: userType,
+                                             // uid: _uid
+                                          )),
                                     );
                                   } else if (incomp == true) {
                                     Navigator.push(
@@ -388,7 +396,10 @@ class _sup3State extends State<sup3> {
                                               firstName: widget.firstName,
                                               lastName: widget.lastName,
                                               emailAddress: widget.emailAddress,
-                                              phoneNum: widget.phoneNum)),
+                                              phoneNum: widget.phoneNum,
+                                              password: widget.password,
+                                              userType: userType,
+                                          )),
                                     );
                                   }
 

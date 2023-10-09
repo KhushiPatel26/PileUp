@@ -139,7 +139,10 @@ class _calState extends State<cal> {
     print(_events);
    // mapdate(); su haa aare kairu hatu ne
   }
-
+  Future<void> _deleteTask(int rid) async {
+    await api.deleteRecord('reminder', 'rid=$rid');
+    _fetchData();
+  }
   List<dynamic> _getEventsForDay(DateTime day) {
     return _events[day] ?? [];
   }
@@ -151,6 +154,7 @@ class _calState extends State<cal> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leadingWidth: 0,
         title: Text(
           'Your Calendar',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
@@ -249,7 +253,7 @@ class _calState extends State<cal> {
                 firstDay: DateTime.utc(2010, 10, 16),
                 lastDay: DateTime.utc(2030, 3, 14),
                 focusedDay: _focusedDay, //DateTime.now(),
-                headerVisible: false,
+                headerVisible: true,
                eventLoader: _getEventsForDay,
                 calendarStyle: CalendarStyle(
                   markerSize: 5,
@@ -331,8 +335,30 @@ class _calState extends State<cal> {
                   //if(DateFormat('yyyy-MM-dd').format(DateTime.parse(reminders[i].startDate))==DateFormat('yyyy-MM-dd').format(_selectedDay))
                   if(_selectedDay.isAfter(DateTime.parse(reminders[i].startDate).subtract(Duration(days: 1))) || _selectedDay.isAtSameMomentAs(DateTime.parse(reminders[i].startDate)))
                     if(reminders[i].dueDate!='null')
-                      if(_selectedDay.isBefore(DateTime.parse(reminders[i].dueDate.toString()))  || _selectedDay.isAtSameMomentAs(DateTime.parse(reminders[i].dueDate.toString())))
-                          event_rem(context, i),
+                     // if(_selectedDay.isBefore(DateTime.parse(reminders[i].dueDate.toString()))  || _selectedDay.isAtSameMomentAs(DateTime.parse(reminders[i].dueDate.toString())))
+                      Dismissible(
+                          key: Key(reminders[i].rid.toString()),
+                          onDismissed: (direction) {
+                            //delete code
+                            _deleteTask(int.parse(reminders[i].rid.toString()));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                backgroundColor: Colors.black,
+                                content: Text(
+                                  'Reminder Deleted',
+                                  style: TextStyle(color: Colors.white),
+                                )));
+                          },
+                          background: Container(
+                            color: red,
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.only(right: 16.0),
+                            child: Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                              child: event_rem(context, i)
+                          ),
               SizedBox(
                 height: 100,
               )

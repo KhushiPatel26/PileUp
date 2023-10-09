@@ -83,6 +83,8 @@ dependencies:
   syncfusion_flutter_signaturepad:
   syncfusion_flutter_pdf:
   pdf:
+  html: ^0.15.0
+  syncfusion_flutter_charts:
 
 dev_dependencies:
   flutter_test:

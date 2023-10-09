@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pup/homepg.dart';
+
+import '../../DB/ApiService3.dart';
+import '../../DB/models.dart';
 
 
 class sup4a extends StatefulWidget {
@@ -7,6 +11,9 @@ class sup4a extends StatefulWidget {
   final String lastName;
   final String emailAddress;
   final String phoneNum;
+  final String password;
+  final String userType;
+
 
   const sup4a({
     Key? key,
@@ -14,6 +21,9 @@ class sup4a extends StatefulWidget {
     required this.lastName,
     required this.emailAddress,
     required this.phoneNum,
+    required this.password,
+    required this.userType,
+
   }) : super(key: key);
 
   @override
@@ -36,6 +46,29 @@ class _sup4aState extends State<sup4a> {
     print('Other: $other');
   }
   int cntr=4;
+  String _uid='';
+  ApiService3 api = ApiService3();
+  Future<void> _insert() async {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    UserCredential cred = await _auth.createUserWithEmailAndPassword(
+        email: widget.emailAddress, password:  widget.password);
+    //String _uid= cred.user!.uid;
+    setState(() {
+      _uid = cred.user?.uid ?? "";
+    });
+    print("UIDUIDUIUDI:......"+_uid);
+    final record = Userstb(
+        name: widget.firstName+' '+widget.lastName,
+        email: widget.emailAddress,
+        phoneNumber: widget.phoneNum,
+        password: widget.password,
+        userType: widget.userType,
+        uid: _uid
+    );
+    await api.createRecord('Users', record.toJson());
+    print("Ussers row done");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,10 +220,13 @@ class _sup4aState extends State<sup4a> {
                     ),
                   ),
                   if(bus || stuteach || other)
-                  ElevatedButton(onPressed: (){
+                  ElevatedButton(onPressed: () async {
+
+                    _insert();
+
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => homepg()),
+                      MaterialPageRoute(builder: (context) => homepg(gotoIndex: 0,)),
                     );
                     setState(() {
 

@@ -123,7 +123,7 @@ print(isdone+" "+stId.toString());
       appBar: AppBar(
         leading: IconButton(onPressed: (){
           Navigator.push(context,
-              MaterialPageRoute(builder: (context) => homepg()));
+              MaterialPageRoute(builder: (context) => homepg(gotoIndex: 1,)));
         }, icon: Icon(Icons.arrow_back_ios),),
       ),
       backgroundColor: Colors.white,

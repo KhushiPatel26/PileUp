@@ -1,19 +1,42 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pup/colors.dart';
+import 'package:pup/project/projhome.dart';
 import 'package:pup/project/projview/activities.dart';
 import 'package:pup/project/projview/assigntask.dart';
 import 'package:pup/project/projview/files.dart';
 import 'package:pup/project/projview/threads.dart';
+import 'package:quill_html_editor/quill_html_editor.dart';
 import 'package:scroll_to_hide/scroll_to_hide.dart';
 import 'package:sticky_headers/sticky_headers.dart';
 
+import '../DB/ApiService3.dart';
+import '../DB/models.dart';
 import 'projview/addmsg.dart';
 
 class projv extends StatefulWidget {
-  const projv({Key? key}) : super(key: key);
+  final Project pid;
+
+  const projv({Key? key, required this.pid}) : super(key: key);
 
   @override
   State<projv> createState() => _projvState();
+}
+
+List<String> selectedMembers = [];
+Map<String, Color> mem = {};
+Map<String, String> name_id = {};
+String? uid;
+
+Random _random = Random();
+Color _getRandomColor() {
+  int r = _random.nextInt(250);
+  int g = _random.nextInt(250);
+  int b = _random.nextInt(250);
+  return Color.fromRGBO(r, g, b, 1.0);
 }
 
 class _projvState extends State<projv> {
@@ -21,16 +44,89 @@ class _projvState extends State<projv> {
   List<String> tabs=["Message Threads", "Tasks","Files"];
   List ontab=[threads(),activities(),files()];
   int selectedIndex = 0;
-  String proj_desc="'PileUp' is a handy productive app that helps user to manage their tasks, projects, and contacts. "
-      "Whether you're an individual looking to stay organized or a business needing efficient project management. "
-      "It offers tools for creating task lists, taking notes, collaborating on projects, and keeping your contacts in order. "
-      "It's like having a digital assistant to help you stay update and work together.";
+  late QuillEditorController controller;
+  // String proj_desc="'PileUp' is a handy productive app that helps user to manage their tasks, projects, and contacts. "
+  //     "Whether you're an individual looking to stay organized or a business needing efficient project management. "
+  //     "It offers tools for creating task lists, taking notes, collaborating on projects, and keeping your contacts in order. "
+  //     "It's like having a digital assistant to help you stay update and work together.";
 
+
+  String? uid;
+  String proj_desc='';
+  @override
+  void initState() {
+    super.initState();
+    // final FirebaseAuth _auth = FirebaseAuth.instance;
+    // final User? user = _auth.currentUser;
+    // uid = user?.uid;
+    // print("uid:" + uid!);
+    proj_desc=widget.pid.description;
+    controller = QuillEditorController();
+    controller.onTextChanged((text) {
+      debugPrint('listening to $text');
+    });
+    //tabs.addAll(widget.pid.tags.split(','));
+    _fetchMem();
+  }
+  ApiService3 api = ApiService3();
+List<ProjMem> pmm=[];
+List<Userstb> puser=[];
+List<Comp_Mem> cmm=[];
+  Future<void> _fetchMem() async {
+    final data = await api.readRecords('Proj_Mem');
+    final data2 = await api.readRecords('Users');
+    //final data3 = await api.readRecords('comp_mem');
+    setState(() {
+      pmm = data.map((json) => ProjMem.fromJson(json)).where((element) => element.projectId==widget.pid.projectId).toList();
+      for(int i=0;i<pmm.length;i++){
+        puser.addAll(data2.map((json) => Userstb.fromJson(json)).where((element) => element.uid==pmm[i].uid).toList());
+      }
+      print("CompCode: ${compcode}");
+      cmm = data.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compcode).toList();
+      print(cmm);
+    });
+  }
+
+//  ApiService3 api = ApiService3();
+
+  List<Project> proj=[];
+  List<Comp_Mem> compmem=[];
+  List<Userstb> users=[];
+  String compCode="";
+
+  Future<void> _fetchData() async {
+    final data2 = await api.readRecords('Comp_Mem');
+    setState(() {
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.uid==uid).toList();
+      compCode=compmem[0].companyCode;
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compCode).toList();
+    });
+    print("Comp_Mem:");
+    print(compmem);
+
+    final data3 = await api.readRecords('Users');
+    setState(() {
+      for(int i=0;i<compmem.length;i++){
+        users = data3.map((json) => Userstb.fromJson(json)).where((element) => element.uid==compmem[i].uid).toList();
+        mem.putIfAbsent(users[0].name, () => _getRandomColor());
+        name_id.putIfAbsent(users[0].name, () => users[0].uid!);
+      }
+    });
+    print("Users:");
+    print(users);
+  }
+
+  final _editorTextStyle = const TextStyle(
+      fontSize: 18,
+      color: Colors.black,
+      fontWeight: FontWeight.w300,
+      fontFamily: 'Roboto');
 
   @override
   void dispose() {
     super.dispose();
     _scrollController.dispose();
+    controller.dispose();
   }
 
   @override
@@ -62,7 +158,7 @@ class _projvState extends State<projv> {
                           children: [
                             TextSpan(text: 'Team: ',
                               style: TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w300),),
-                            TextSpan(text: 'PileUp',
+                            TextSpan(text: widget.pid.name,//'PileUp',
                               style: TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w500),)
                           ]
                       ),
@@ -96,7 +192,7 @@ class _projvState extends State<projv> {
               padding: const EdgeInsets.only(top:8,left: 20,bottom: 10),
               child: Container(
                 width: MediaQuery.of(context).size.width,
-                child: Text("PileUp Database & UI",
+                child: Text(widget.pid.name,
                   style: TextStyle(color: Colors.black,fontSize: 30,fontWeight: FontWeight.w500),
                 ),
               ),
@@ -139,13 +235,13 @@ class _projvState extends State<projv> {
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 8.0,bottom: 8.0,right: 5.0),
-                                      child: Text("26 September",
+                                      child: Text('${DateFormat.d().format(DateTime.parse(widget.pid.dueDate))} ${DateFormat.MMMM().format(DateTime.parse(widget.pid.dueDate))}',//"26 September",
                                         style: TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 15,fontWeight: FontWeight.w600),),
                                     ),
                                     Container(
                                       child: Padding(
                                         padding: const EdgeInsets.all(5.0),
-                                        child: Text("3 days left",
+                                        child: Text('${(DateTime.parse(widget.pid.dueDate)).difference(DateTime.now()).inDays} days left',//"3 days left",
                                           style: TextStyle(color: Colors.black.withOpacity(0.4),fontSize: 12,fontWeight: FontWeight.w300),
                                         ),
                                       ),
@@ -155,7 +251,7 @@ class _projvState extends State<projv> {
                                       ),
                                     ),
                                     Padding(
-                                      padding: EdgeInsets.only(top:4.0,bottom: 4,right:3 ,left:22 ),
+                                      padding: EdgeInsets.only(top:4.0,bottom: 4,right:3 ,left:40 ),
                                       child: Container(
                                         height: 35,
                                         width: 35,
@@ -190,178 +286,127 @@ class _projvState extends State<projv> {
                                 children: [
                                   Stack(
                                     children: [
-                                      Align(
-                                        alignment: AlignmentDirectional(-1, 0),
-                                        child: Container(
-                                          width: 30,
-                                          height: 30,
-                                          clipBehavior: Clip.antiAlias,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
+                                      if(pmm.length==0)
+                                        CircleAvatar(
+                                          child: Icon(Icons.person_add_alt_sharp),
+                                          backgroundColor: Colors.transparent,
+                                        ),
 
-                                          ),
-                                          child: Image.network(
-                                            'https://source.unsplash.com/random/sig=1',
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            20, 0, 0, 0),
-                                        child: Container(
-                                          width: 30,
-                                          height: 30,
-                                          clipBehavior: Clip.antiAlias,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Image.network(
-                                            'https://source.unsplash.com/random/sig=2',
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            40, 0, 0, 0),
-                                        child: Container(
-                                          width: 30,
-                                          height: 30,
-                                          clipBehavior: Clip.antiAlias,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Image.network(
-                                            'https://source.unsplash.com/random/sig=4',
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsetsDirectional.fromSTEB(
-                                            70, 0, 0, 0),
-                                        child: //badges.
-                                        Badge(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 8.0, right: 8),
-                                            child: Text(
-                                              '+5',
-                                              style: TextStyle(
-                                                  fontFamily: 'Readex Pro',
-                                                  color: Colors.black),
+                                      if(pmm.length>0)
+                                        for(int i=0;i<pmm.length;i++)
+                                          Padding(
+                                            padding: EdgeInsets.only(left: i.toDouble()*20.0),
+                                            child: CircleAvatar(
+                                              backgroundColor: _getRandomColor(),
+                                              child: Text(puser[i].name[0]),
                                             ),
-                                          ),
-                                          backgroundColor:
-                                          Colors.black.withOpacity(0.5),
-                                          //largeSize: 5,
-                                          smallSize: 30,
-                                          // showBadge: true,
-                                          // shape: BadgeShape.circle,
-                                          // badgeColor: Colors.white70,
-                                          // elevation: 4,
-                                          // padding: EdgeInsetsDirectional.fromSTEB(
-                                          //     8, 8, 8, 8),
-                                          // position: BadgePosition.topEnd(),
-                                          // animationType: BadgeAnimationType.scale,
-                                          // toAnimate: true,
-                                        ),
-                                      ),
+                                          )
                                     ],
                                   ),
+                                  // Stack(
+                                  //   children: [
+                                  //     Align(
+                                  //       alignment: AlignmentDirectional(-1, 0),
+                                  //       child: Container(
+                                  //         width: 30,
+                                  //         height: 30,
+                                  //         clipBehavior: Clip.antiAlias,
+                                  //         decoration: BoxDecoration(
+                                  //           shape: BoxShape.circle,
+                                  //
+                                  //         ),
+                                  //         child: Image.network(
+                                  //           'https://source.unsplash.com/random/sig=1',
+                                  //           fit: BoxFit.cover,
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //     Padding(
+                                  //       padding: EdgeInsetsDirectional.fromSTEB(
+                                  //           20, 0, 0, 0),
+                                  //       child: Container(
+                                  //         width: 30,
+                                  //         height: 30,
+                                  //         clipBehavior: Clip.antiAlias,
+                                  //         decoration: BoxDecoration(
+                                  //           shape: BoxShape.circle,
+                                  //         ),
+                                  //         child: Image.network(
+                                  //           'https://source.unsplash.com/random/sig=2',
+                                  //           fit: BoxFit.cover,
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //     Padding(
+                                  //       padding: EdgeInsetsDirectional.fromSTEB(
+                                  //           40, 0, 0, 0),
+                                  //       child: Container(
+                                  //         width: 30,
+                                  //         height: 30,
+                                  //         clipBehavior: Clip.antiAlias,
+                                  //         decoration: BoxDecoration(
+                                  //           shape: BoxShape.circle,
+                                  //         ),
+                                  //         child: Image.network(
+                                  //           'https://source.unsplash.com/random/sig=4',
+                                  //           fit: BoxFit.cover,
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //     Padding(
+                                  //       padding: EdgeInsetsDirectional.fromSTEB(
+                                  //           70, 0, 0, 0),
+                                  //       child: //badges.
+                                  //       Badge(
+                                  //         child: Padding(
+                                  //           padding: const EdgeInsets.only(
+                                  //               top: 8.0, right: 8),
+                                  //           child: Text(
+                                  //             '+5',
+                                  //             style: TextStyle(
+                                  //                 fontFamily: 'Readex Pro',
+                                  //                 color: Colors.black),
+                                  //           ),
+                                  //         ),
+                                  //         backgroundColor:
+                                  //         Colors.black.withOpacity(0.5),
+                                  //         //largeSize: 5,
+                                  //         smallSize: 30,
+                                  //         // showBadge: true,
+                                  //         // shape: BadgeShape.circle,
+                                  //         // badgeColor: Colors.white70,
+                                  //         // elevation: 4,
+                                  //         // padding: EdgeInsetsDirectional.fromSTEB(
+                                  //         //     8, 8, 8, 8),
+                                  //         // position: BadgePosition.topEnd(),
+                                  //         // animationType: BadgeAnimationType.scale,
+                                  //         // toAnimate: true,
+                                  //       ),
+                                  //     ),
+                                  //   ],
+                                  // ),
                                   Padding(
                                     padding: const EdgeInsets.only(left: 120.0),
                                     child: Container(
                                       width: 40,
                                       height: 30,
-                                      child: IconButton(onPressed: () async {
-                                        await showDialog<void>(
-                                            context: context,
-                                            builder: (context) => Container(
-                                              height: 600,
-                                              width: 720,
-                                              child: AlertDialog(
-                                                backgroundColor: Colors.white,
-                                                content: Stack(
-                                                  clipBehavior: Clip.none,
-                                                  children: <Widget>[
-                                                    Positioned(
-                                                      left: -40,
-                                                      top: -40,
-                                                      child: InkResponse(
-                                                        onTap: () {
-                                                          Navigator.of(context).pop();
-                                                        },
-                                                        child: const CircleAvatar(
-                                                          backgroundColor: Colors.black,
-                                                          child: Icon(Icons.close),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: <Widget>[
-                                                        Padding(
-                                                          padding:
-                                                          const EdgeInsets.only(top: 10.0, left: 20, bottom: 10),
-                                                          child: Text(
-                                                            'Company Registered Successfully ! 🎉',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Outfit',
-                                                              color: Color(0xFF101213),
-                                                              fontSize: 25,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Padding(
-                                                          padding:
-                                                          const EdgeInsets.only( left: 15, bottom: 5),
-                                                          child: Text(
-                                                            'Invite your Team Members',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Outfit',
-                                                              color: Color(0xFF101213),
-                                                              fontSize: 15,
-                                                              fontWeight: FontWeight.w300,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Image.asset("lib/assets/share_code.png"),
-                                                        Padding(
-                                                            padding: const EdgeInsets.all(8),
-                                                            child: Container(
-                                                                width: 440,
-                                                                decoration: BoxDecoration(
-                                                                    color: Colors.black.withOpacity(0.1),
-                                                                    borderRadius: BorderRadius.all(Radius.circular(30))
-                                                                ),
-                                                                child: Row(
-                                                                  children: [
-
-                                                                  ],
-                                                                ))),
-                                                        Padding(
-                                                          padding: const EdgeInsets.only(
-                                                              top: 8.0,
-                                                              bottom: 10.0,
-                                                              left: 8.0,
-                                                              right: 8.0),
-                                                          child: Text(
-                                                            "Invite Members",
-                                                            style: TextStyle(
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w300,
-                                                                fontSize: 18),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ));
+                                      child: IconButton(onPressed: () {
+                                        _fetchData();
+                                        showModalBottomSheet(
+                                          isScrollControlled: true,
+                                          enableDrag: true,
+                                          context: context,
+                                          backgroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadiusDirectional.only(
+                                              topEnd: Radius.circular(25),
+                                              topStart: Radius.circular(25),
+                                            ),
+                                          ),
+                                          builder: (BuildContext context) {
+                                            return SingleChildScrollView(child: MemberListBottomSheet());
+                                          },
+                                        );
                                       },
                                           icon: Icon(Icons.more_horiz,color: Colors.black,)),
                                     ),
@@ -387,48 +432,49 @@ class _projvState extends State<projv> {
                               padding: EdgeInsets.only(left: 23.0),
                               child: Row(
                                 children: [
+                                  for(int i=0;i<widget.pid.tags.split(',').length;i++)
                                   Padding(
                                     padding: EdgeInsets.only(right: 4.0),
                                     child: Container(
                                       child: Padding(
                                         padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
-                                        child: Text("Project",style: TextStyle(color: orange,fontSize: 10),),
+                                        child: Text("${widget.pid.tags.split(',')[i]}",style: TextStyle(color: Colors.black,fontSize: 10),),
                                       ),
                                       decoration: BoxDecoration(
                                           borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
                                           border: Border.all(color: orange,width: 0.7),
-                                          color: orange.withOpacity(0.4)
+                                          color: _getRandomColor().withOpacity(0.2)
                                       ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 4.0),
-                                    child: Container(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
-                                        child: Text("College",style: TextStyle(color: brown,fontSize: 10),),
-                                      ),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
-                                          border: Border.all(color: brown,width: 0.7),
-                                          color: brown.withOpacity(0.4)
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 4.0),
-                                    child: Container(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
-                                        child: Text("Sem V",style: TextStyle(color: green,fontSize: 10),),
-                                      ),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
-                                          border: Border.all(color: green,width: 0.7),
-                                          color: green.withOpacity(0.4)
-                                      ),
-                                    ),
-                                  ),
+                                  // Padding(
+                                  //   padding: EdgeInsets.only(right: 4.0),
+                                  //   child: Container(
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
+                                  //       child: Text("College",style: TextStyle(color: brown,fontSize: 10),),
+                                  //     ),
+                                  //     decoration: BoxDecoration(
+                                  //         borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
+                                  //         border: Border.all(color: brown,width: 0.7),
+                                  //         color: brown.withOpacity(0.4)
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  // Padding(
+                                  //   padding: EdgeInsets.only(right: 4.0),
+                                  //   child: Container(
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
+                                  //       child: Text("Sem V",style: TextStyle(color: green,fontSize: 10),),
+                                  //     ),
+                                  //     decoration: BoxDecoration(
+                                  //         borderRadius: BorderRadiusDirectional.all(Radius.circular(20)),
+                                  //         border: Border.all(color: green,width: 0.7),
+                                  //         color: green.withOpacity(0.4)
+                                  //     ),
+                                  //   ),
+                                  // ),
                                   Container(
                                     child: Padding(
                                       padding: const EdgeInsets.only(top:3.0,bottom:3.0,left: 8,right: 8),
@@ -469,12 +515,56 @@ class _projvState extends State<projv> {
                                 ],
                               ),
                             ),
+                            // FutureBuilder<String>(
+                            //   future: widget.pid.description,
+                            //   builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                            //     if (snapshot.connectionState == ConnectionState.done) {
+                            //       return QuillHtmlEditor(
+                            //         text: snapshot.data ?? "",
+                            //         hintText: 'Type something',
+                            //         controller: controller,
+                            //         isEnabled: false,
+                            //         minHeight: 500,
+                            //         textStyle: _editorTextStyle,
+                            //         hintTextStyle: TextStyle(
+                            //           fontSize: 18,
+                            //           color: Colors.black38,
+                            //           fontWeight: FontWeight.normal,
+                            //         ),
+                            //         hintTextAlign: TextAlign.start,
+                            //         padding: const EdgeInsets.only(top: 10),
+                            //         backgroundColor: widget.bgcolor,
+                            //       );
+                            //     } else {
+                            //       return CircularProgressIndicator();
+                            //     }
+                            //   },
+                            // ),
                             Padding(
-                              padding: const EdgeInsets.only(left: 15.0, right: 15,bottom: 10),
-                              child: Text(proj_desc.length<210?proj_desc:proj_desc.substring(0,200)+" ...",
-                              style: TextStyle(color: Colors.black,fontWeight: FontWeight.w300),
+                              padding: const EdgeInsets.only(left:12.0,bottom: 12,right: 10),
+                              child: QuillHtmlEditor(
+                                text: widget.pid.description,
+                                //hintText: 'Type something',
+                                controller: controller,
+                                isEnabled: false,
+                                minHeight: 30,
+                                textStyle: _editorTextStyle,
+                                hintTextStyle: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black38,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                                hintTextAlign: TextAlign.start,
+                                padding: const EdgeInsets.only(top: 10),
+                                backgroundColor: blue.withOpacity(0.2),
                               ),
                             ),
+                            // Padding(
+                            //   padding: const EdgeInsets.only(left: 15.0, right: 15,bottom: 10),
+                            //   child: Text(proj_desc.length<210?proj_desc:proj_desc.substring(0,200)+" ...",
+                            //   style: TextStyle(color: Colors.black,fontWeight: FontWeight.w300),
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
@@ -488,7 +578,7 @@ class _projvState extends State<projv> {
                   // width: 500,
                   child: Row(
                     children: [
-                      for(int i=0;i<3;i++)
+                      for(int i=0;i<tabs.length;i++)
                         GestureDetector(
                             child: Container(
                               height: 39,
@@ -634,6 +724,91 @@ class _projvState extends State<projv> {
           },
           child: Icon(Icons.add,color: Colors.white,),
         ),
+      ),
+    );
+  }
+}
+
+class MemberListBottomSheet extends StatefulWidget {
+  @override
+  _MemberListBottomSheetState createState() => _MemberListBottomSheetState();
+}
+
+class _MemberListBottomSheetState extends State<MemberListBottomSheet> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Add Members",style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500, fontSize: 20)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                if(selectedMembers.length==0)
+                  CircleAvatar(
+                    child: Icon(Icons.person_add_alt_sharp),
+                    backgroundColor: Colors.transparent,
+                  ),
+
+                if(selectedMembers.length>0)
+                  for(int i=0;i<selectedMembers.length;i++)
+                    Padding(
+                      padding: EdgeInsets.only(left: i.toDouble()*10.0),
+                      child: CircleAvatar(
+                        backgroundColor: mem[selectedMembers[i]],
+                        child: Text(selectedMembers[i][0]),
+                      ),
+                    )
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: mem.length,
+              itemBuilder: (context, index) {
+                return name_id[mem.keys.elementAt(index)]!=uid? ListTile(
+                  leading: CircleAvatar(child: Text(mem.keys.elementAt(index)[0]),
+                    backgroundColor: mem.values.elementAt(index),
+                  ),
+                  title: Text(mem.keys.elementAt(index),
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  trailing: Checkbox(
+                    side: BorderSide(color: Colors.black),
+                    shape: CircleBorder(),
+                    activeColor: Colors.black,
+                    value: selectedMembers.contains(mem.keys.elementAt(index)),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedMembers.add(mem.keys.elementAt(index));
+                        } else {
+                          selectedMembers.remove(mem.keys.elementAt(index));
+                        }
+                      });
+                    },
+                  ),
+                ) : Container();
+              },
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Do something with the selected members
+              setState(() {
+                selectedMembers=selectedMembers;
+              });
+              print('Selected Members: $selectedMembers');
+              Navigator.pop(context);
+            },
+            child: Text('Add Members',style: TextStyle(color: Colors.white),),
+          ),
+        ],
       ),
     );
   }

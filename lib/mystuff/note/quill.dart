@@ -309,3 +309,33 @@ class _quillState extends State<quill> {
   /// method to un focus editor
   void unFocusEditor() => controller.unFocus();
 }
+
+
+// import 'dart:html';
+// import 'package:quill_delta/quill_delta.dart';
+//
+// void main() {
+//   // Assuming you have a Quill editor with the ID 'editor'
+//   Quill quill = Quill(querySelector('#editor'));
+//
+//   // Get the Quill content
+//   Delta content = quill.getContents();
+//
+//   // Convert the content to plain text
+//   String plainText = extractPlainText(content);
+//   print('Plain text content: $plainText');
+// }
+//
+// String extractPlainText(Delta content) {
+//   // Initialize an empty string to store plain text
+//   String plainText = '';
+//
+//   // Iterate over the content and extract text
+//   content.forEach((op) {
+//     if (op.data != null && op.data is String) {
+//       plainText += op.data;
+//     }
+//   });
+//
+//   return plainText;
+// }

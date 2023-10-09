@@ -6,7 +6,8 @@ import '../DB/ApiService3.dart';
 import '../homepg.dart';
 
 class addcont extends StatefulWidget {
-  const addcont({Key? key}) : super(key: key);
+
+  const addcont({Key? key,}) : super(key: key);
 
   @override
   State<addcont> createState() => _addcontState();
@@ -25,13 +26,13 @@ class _addcontState extends State<addcont> {
 
   Future<void> _insert() async {
     final record = PSContact(
-      uid: uid.toString(),
-      fname: fname.text,
-      lname: lname.text,
-      phnnum: int.parse(phnnum.text),
-      email: email.text,
-      category: caegory.text,
-      label: label.text
+        uid: uid.toString(),
+        fname: fname.text,
+        lname: lname.text,
+        phnnum: phnnum.text,
+        email: email.text,
+        category: caegory.text,
+        label: label.text
     );
     await api.createRecord('pscontact', record.toJson());
     print("done");
@@ -91,7 +92,7 @@ class _addcontState extends State<addcont> {
                 child: TextFormField(
                   controller: fname,
                   autofocus: true,
-                 // autofillHints: [AutofillHints.email],
+                  // autofillHints: [AutofillHints.email],
                   obscureText: false,
                   decoration: InputDecoration(
                     labelText: 'First Name',
@@ -161,7 +162,7 @@ class _addcontState extends State<addcont> {
                 child: TextFormField(
                   controller: lname,
                   autofocus: true,
-                 // autofillHints: [AutofillHints.email],
+                  // autofillHints: [AutofillHints.email],
                   obscureText: false,
                   decoration: InputDecoration(
                     labelText: 'Last Name',
@@ -494,18 +495,51 @@ class _addcontState extends State<addcont> {
             ),
             ElevatedButton(
                 onPressed: () {
+                  RegExp regExp = RegExp(r'^[0-9]{10}$');
+                  RegExp regExpemail = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    if (fname.text.isEmpty && phnnum.text.isEmpty) {
+    // Show a snackbar if both fields are empty
+    _showSnackBar('Both fields are required');
+    } else if (fname.text.isEmpty) {
+    // Show a snackbar if first name is empty
+    _showSnackBar('First Name is required');
+    } else if (phnnum.text.isEmpty) {
+    // Show a snackbar if phone number is empty
+    _showSnackBar('Phone Number is required');
+    } else if (!regExp.hasMatch(phnnum.text)) {
+      _showSnackBar('Please enter a valid 10-digit phone number');
+    }
+    else if (!regExpemail.hasMatch(email.text) && (!email.text.isEmpty)) {
+      _showSnackBar('Please enter a valid email address');
+    }
+    else {
 
-                  _insert();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      backgroundColor: Colors.black,
-                      content: Text(
-                        'ContactAdded',
-                        style: TextStyle(color: Colors.white),
-                      )));
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => homepg()),
-                  );
+   _insert();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    backgroundColor: Colors.black,
+    content: Text(
+    'ContactAdded',
+    style: TextStyle(color: Colors.white),
+    )));
+   Navigator.push(
+       context,
+       MaterialPageRoute(builder: (context) => homepg(gotoIndex: 4,))
+   );
+    }
+//phnumber regex kar email bi aare regex agar naikhu tih
+
+
+                  // _insert();
+                  // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  //     backgroundColor: Colors.black,
+                  //     content: Text(
+                  //       'ContactAdded',
+                  //       style: TextStyle(color: Colors.white),
+                  //     )));
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => homepg()),
+                  // );
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(
@@ -526,6 +560,13 @@ class _addcontState extends State<addcont> {
                 )),
           ],
         ),
+      ),
+    );
+  }
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
       ),
     );
   }

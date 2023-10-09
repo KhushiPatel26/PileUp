@@ -4,8 +4,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:math';
 import 'package:pup/socialmedia.dart';
 
+import '../DB/models.dart';
+
 class contview extends StatefulWidget {
-final Contact contact;
+final PSContact contact;
   const contview({required this.contact});
 
   @override
@@ -42,7 +44,7 @@ class _contviewState extends State<contview> {
               padding: const EdgeInsets.all(20.0),
               child:
               CircleAvatar(
-                child: Text(widget.contact.displayName.toString().toUpperCase()[0],
+                child: Text(widget.contact.fname.toString().toUpperCase()[0],
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
                 radius: 40,
                 backgroundColor: Colors.primaries[_random.nextInt(Colors.primaries.length)]
@@ -52,21 +54,21 @@ class _contviewState extends State<contview> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 100.0),
+              padding: const EdgeInsets.only(left: 70.0),
               child: Row(
                 children: [
-                  Text(widget.contact.displayName.split(' ')[0]+' ', style: TextStyle(
+                  Text(widget.contact.fname.split(' ')[0]+' ', style: TextStyle(
                     fontSize: 30, color: Colors.black
                   ),),
-                  // Text(' '+widget.contact.displayName.split(' ')[1], style: TextStyle(
-                  //   fontSize: 30,
-                  // ),),
+                  Text(' '+widget.contact.fname.split(' ')[1], style: TextStyle(
+                    fontSize: 30, color: Colors.black
+                  ),),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(2.0),
-              child: Text(widget.contact.phones[0].number, style: TextStyle(
+              child: Text(widget.contact.phnnum, style: TextStyle(
                   color: Colors.grey
               ),),
             ),
@@ -82,7 +84,7 @@ class _contviewState extends State<contview> {
                 children: [
                   FloatingActionButton(
                     onPressed: () {
-                      socialmedia.mail(widget.contact.emails.toString());
+                      socialmedia.mail(widget.contact.email.toString());
                       //Uri.parse('whatsapp://send?phone=9773884079');
                     },
                     backgroundColor: Colors.red[900],
@@ -96,7 +98,7 @@ class _contviewState extends State<contview> {
                   FloatingActionButton(
                     backgroundColor: Colors.blue,
                     onPressed: () async {
-                      socialmedia.phn(widget.contact.phones[0].number.toString());
+                      socialmedia.phn(widget.contact.phnnum.toString());
                       // Uri.parse("tel://9773884079");
                     },
                     child: const Icon(
@@ -108,7 +110,7 @@ class _contviewState extends State<contview> {
                   ),
                   FloatingActionButton(
                     onPressed: () {
-                      socialmedia.whatsapp(widget.contact.phones[0].number.toString());
+                      socialmedia.whatsapp(widget.contact.phnnum.toString());
                       //Uri.parse('whatsapp://send?phone=9773884079');
                     },
                     backgroundColor: Colors.green,
@@ -163,9 +165,10 @@ class _contviewState extends State<contview> {
             // ),
 
 
-          ],
-        ),
-      ),
+
+    ]),
+    ),
+        );
 
       /*floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -208,6 +211,6 @@ class _contviewState extends State<contview> {
             ]
         ),*/
 
-    );
+
   }
 }

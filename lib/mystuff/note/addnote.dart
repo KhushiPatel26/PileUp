@@ -623,7 +623,7 @@ class _addnoteState extends State<addnote> {
               Container(
                 color: _backgroundColor,
                 child: QuillHtmlEditor(
-                //  text: "<h1>Hello</h1>This is a <b>quill</b> html editor example 😊",
+                text: "<body bgcolor='_backgroundColor'></body>",
                   hintText: 'Type something',
                   controller: controller,
                   isEnabled: true,
@@ -899,10 +899,11 @@ class _addnoteState extends State<addnote> {
                                                           ? 3
                                                           : 5)),
                                             ),
-                                            onTap: () {
+                                            onTap: () async {
                                               setState(() {
                                                 _backgroundColor = bgcolorlist[i];
                                               });
+                                              //await controller.setFormat(format: 'backgroundcolor', value: _backgroundColor);
                                             },
                                           ),
                                         )
@@ -1131,6 +1132,10 @@ class _addnoteState extends State<addnote> {
   void setHtmlText(String text) async {
     await controller.setText(text);
   }
+
+  // void setFormat(String format, String value) async{
+  //   await controller.setFormat(format: format, value: value);
+  // }
 
   ///[insertNetworkImage] to set the html text to editor
   void insertNetworkImage(String url) async {

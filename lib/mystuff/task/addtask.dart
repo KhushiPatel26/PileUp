@@ -4,11 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:line_icons/line_icons.dart';
+import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pup/homepg.dart';
 import 'package:pup/mystuff/task/taskpg.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../DB/ip.dart';
+
 class addtask extends StatefulWidget {
   const addtask({Key? key}) : super(key: key);
 
@@ -17,7 +20,6 @@ class addtask extends StatefulWidget {
 }
 
 class _addtaskState extends State<addtask> {
-
   String? uid;
   @override
   void initState() {
@@ -30,8 +32,8 @@ class _addtaskState extends State<addtask> {
   }
 
   DateTime _selectedDate = DateTime.now();
-  String selectDate='';
-  String priority='Medium';
+  String selectDate = '';
+  String priority = 'Medium';
   TextEditingController taskName = new TextEditingController();
   TextEditingController taskDesc = new TextEditingController();
   TextEditingController date = new TextEditingController();
@@ -41,14 +43,20 @@ class _addtaskState extends State<addtask> {
   TextEditingController repeat = new TextEditingController();
   TextEditingController category = new TextEditingController();
   TextEditingController label = new TextEditingController();
- // int _selectedcolor=0;
+  // int _selectedcolor=0;
   String st = DateFormat("hh:mm a").format(DateTime.now()).toString();
   String et = DateFormat("hh:mm a").format(DateTime.now()).toString();
   //String et = "9:30PM";
+  String dropdownValue = 'None'; //nai
   int _remind = 0;
-  bool doremind=false;
-  List<int> remindlist = [0,5, 10, 15, 20];
-  List<Color> impcolors = [Color(0xFFDA1240), Color(0xFFF33870),Color(0xFFFD86A2),Color(0xFFEDE0EA)];
+  bool doremind = false;
+  List<int> remindlist = [0, 5, 10, 15, 20];
+  List<Color> impcolors = [
+    Color(0xFFDA1240),
+    Color(0xFFF33870),
+    Color(0xFFFD86A2),
+    Color(0xFFEDE0EA)
+  ];
   final List<String> items = [
     'Item1',
     'Item2',
@@ -64,18 +72,19 @@ class _addtaskState extends State<addtask> {
       'taskName': taskName.text,
       'taskDesc': taskDesc.text,
       'percent': 0.0,
-      'startDate': st,
-      'dueDate': et,
+      'startDate': stdate.toString(),
+      'dueDate': duedate.toString(),
       'priority': priority,
-      'remind': doremind?'never':_remind.toString(),
+      'remind': doremind ? 'never' : _remind.toString(),
       'status': 'in progress',
-      'category': category.text,
+      'category': dropdownValue,
       'labels': label.text,
       'subtask': 0,
       'createDate': DateFormat('dd/MM/yyyy').format(_selectedDate),
     };
-
-    var response = await http.post(Uri.parse(url), headers: {'Content-Type': 'application/json'}, body: json.encode(data));
+//black ma kar ne
+    var response = await http.post(Uri.parse(url),
+        headers: {'Content-Type': 'application/json'}, body: json.encode(data));
 
     if (response.statusCode == 200) {
       print(data);
@@ -85,25 +94,31 @@ class _addtaskState extends State<addtask> {
     }
   }
 
-  String _chosenValue="Please choose a Category";
+  DateTime? stdate;
+  DateTime? duedate;
+  String _chosenValue = "Please choose a Category";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back,color: Colors.black,),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Colors.black,
+          ),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => homepg(gotoIndex: 1)));
           },
         ),
-        title: Text("Add Task",style: TextStyle(color: Colors.black,fontWeight: FontWeight.w300),),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.account_circle_outlined,color: Colors.black,),
-            onPressed: () {},
-          ),
-        ],
+        title: Text(
+          "Add Task",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
+        ),
+        
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -116,59 +131,259 @@ class _addtaskState extends State<addtask> {
               title: taskDesc,
               hint: "Add Note here",
             ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Seleted Dates:",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.black, width: 0.2)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Row(
 
-            textf(
-              mtitle: "Date",
-              hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
-              widget: IconButton(
-                icon: Icon(
-                  Icons.calendar_month_outlined,
-                  color: Colors.black54,
-                ),
-                onPressed: () {
-                  getDate();
-                  setState(() {
-                    selectDate=DateFormat('dd/MM/yyyy').format(_selectedDate);
-                  });
-                  //DatePickerDialog(initialDate: _selectedDate, firstDate: _selectedDate,);
-                },
+                            children: [
+                              Text(stdate != null?"Start: ${DateFormat('dd/MM/yyyy HH:mm').format(stdate!)}":"Start:  - Select Start Date -",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.5))),
+                              SizedBox(
+                                width: 65,
+                              ),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    // border: Border.all(color: Colors.black, width: 0.7),
+                                    // borderRadius: BorderRadius.circular(30)
+                                  ),
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        DateTime? dateTime =
+                                            await showOmniDateTimePicker(
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime.now(),
+                                                lastDate: DateTime.now().add(
+                                                  const Duration(days: 3652),
+                                                ),
+                                                is24HourMode: false,
+                                                isShowSeconds: false,
+                                                minutesInterval: 1,
+                                                secondsInterval: 1,
+                                                isForce2Digits: true,
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(16)),
+                                                constraints:
+                                                    const BoxConstraints(
+                                                  maxWidth: 350,
+                                                  maxHeight: 650,
+                                                ),
+                                                transitionBuilder: (context,
+                                                    anim1, anim2, child) {
+                                                  return FadeTransition(
+                                                    opacity: anim1.drive(
+                                                      Tween(
+                                                        begin: 0,
+                                                        end: 1,
+                                                      ),
+                                                    ),
+                                                    child: child,
+                                                  );
+                                                },
+                                                transitionDuration:
+                                                    const Duration(
+                                                        milliseconds: 200),
+                                                barrierDismissible: true,
+                                                selectableDayPredicate:
+                                                    (dateTime) {
+                                                  // Disable 25th Feb 2023
+                                                  if (dateTime ==
+                                                      DateTime(2023, 2, 25)) {
+                                                    return false;
+                                                  } else {
+                                                    return true;
+                                                  }
+                                                });
+
+                                        setState(() {
+                                          stdate=dateTime;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        LineIcons.calendarAlt,
+                                        color: Colors.black,
+                                      )))
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                            border:
+                                Border.all(color: duedate!=null?(duedate!.isBefore(stdate!)?Colors.red:Colors.black):Colors.black, width: duedate!=null?(duedate!.isBefore(stdate!)?0.7:0.2):0.2)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Row(
+                            children: [
+                              Text(duedate != null?"End: ${DateFormat('dd/MM/yyyy HH:mm').format(duedate!)}":"End: - Select End Date -",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.5))),
+                              SizedBox(
+                                width: 73,
+                              ),
+                              Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    // border: Border.all(color: Colors.black, width: 0.7),
+                                    // borderRadius: BorderRadius.circular(30)
+                                  ),
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        DateTime? dateTime =
+                                        await showOmniDateTimePicker(
+                                            context: context,
+                                            initialDate: stdate,
+                                            firstDate: stdate,
+                                            lastDate: DateTime.now().add(
+                                              const Duration(days: 3652),
+                                            ),
+                                            is24HourMode: false,
+                                            isShowSeconds: false,
+                                            minutesInterval: 1,
+                                            secondsInterval: 1,
+                                            isForce2Digits: true,
+                                            borderRadius:
+                                            const BorderRadius.all(
+                                                Radius.circular(16)),
+                                            constraints:
+                                            const BoxConstraints(
+                                              maxWidth: 350,
+                                              maxHeight: 650,
+                                            ),
+                                            transitionBuilder: (context,
+                                                anim1, anim2, child) {
+                                              return FadeTransition(
+                                                opacity: anim1.drive(
+                                                  Tween(
+                                                    begin: 0,
+                                                    end: 1,
+                                                  ),
+                                                ),
+                                                child: child,
+                                              );
+                                            },
+                                            transitionDuration:
+                                            const Duration(
+                                                milliseconds: 200),
+                                            barrierDismissible: true,
+                                            selectableDayPredicate:
+                                                (dateTime) {
+                                              // Disable 25th Feb 2023
+                                              if (dateTime ==
+                                                  DateTime(2023, 2, 25)) {
+                                                return false;
+                                              } else {
+                                                return true;
+                                              }
+                                            });
+
+                                        setState(() {
+                                          duedate=dateTime;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        LineIcons.calendarAlt,
+                                        color: Colors.black,
+                                      )))
+                            ],
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible:duedate!=null?duedate!.isBefore(stdate!):false ,
+                        child: Text(
+                          "Set End date timing after the Start date timing!",
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black.withOpacity(0.6),
+                              fontWeight: FontWeight.w300),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
               ),
             ),
-            Row(
-              children: [
-                Expanded(
-                    child: textf(
-                  mtitle: "Start Time",
-                  title: starttime,
-                  hint: st,
-                  widget: IconButton(
-                    icon: Icon(
-                      Icons.access_time,
-                      color: Colors.black54,
-                    ),
-                    onPressed: () {
-                      gettime(isStartTime: true);
-                    },
-                  ),
-                )),
-                Expanded(
-                  child: textf(
-                    mtitle: "End Time",
-                    title: endtime,
-                    hint: et,
-                    widget: IconButton(
-                      icon: Icon(
-                        Icons.access_time,
-                        color: Colors.black54,
-                      ),
-                      onPressed: () {
-                        gettime(isStartTime: false);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            // textf(
+            //   mtitle: "Date",
+            //   hint: DateFormat('dd/MM/yyyy').format(_selectedDate),
+            //   widget: IconButton(
+            //     icon: Icon(
+            //       Icons.calendar_month_outlined,
+            //       color: Colors.black54,
+            //     ),
+            //     onPressed: () {
+            //       getDate();
+            //       setState(() {
+            //         selectDate=DateFormat('dd/MM/yyyy').format(_selectedDate);
+            //       });
+            //       //DatePickerDialog(initialDate: _selectedDate, firstDate: _selectedDate,);
+            //     },
+            //   ),
+            // ),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //         child: textf(
+            //       mtitle: "Start Time",
+            //       title: starttime,
+            //       hint: st,
+            //       widget: IconButton(
+            //         icon: Icon(
+            //           Icons.access_time,
+            //           color: Colors.black54,
+            //         ),
+            //         onPressed: () {
+            //           gettime(isStartTime: true);
+            //         },
+            //       ),
+            //     )),
+            //     Expanded(
+            //       child: textf(
+            //         mtitle: "End Time",
+            //         title: endtime,
+            //         hint: et,
+            //         widget: IconButton(
+            //           icon: Icon(
+            //             Icons.access_time,
+            //             color: Colors.black54,
+            //           ),
+            //           onPressed: () {
+            //             gettime(isStartTime: false);
+            //           },
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
             // Visibility(
             //   visible: !doremind,
             //   child: Column(
@@ -220,23 +435,19 @@ class _addtaskState extends State<addtask> {
                       });
                     },
                     //splashRadius: 210.0,
-                    activeColor: Colors
-                        .black, // Color when checkbox is checked
-                    checkColor: Colors
-                        .white, // Color of the checkmark
+                    activeColor: Colors.black, // Color when checkbox is checked
+                    checkColor: Colors.white, // Color of the checkmark
                     materialTapTargetSize: MaterialTapTargetSize
                         .shrinkWrap, // Remove extra padding
                     visualDensity: VisualDensity.compact,
                     side: BorderSide(
-                        color: Colors
-                            .black), // Reduce the checkbox size
+                        color: Colors.black), // Reduce the checkbox size
                     shape: CircleBorder(),
                   ),
                   Padding(
                     padding: EdgeInsets.only(left: 8.0),
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
@@ -267,9 +478,8 @@ class _addtaskState extends State<addtask> {
                         Text(
                           "you will be notified as per your selected time",
                           style: TextStyle(
-                            fontSize: 10,
-                              color: Colors.black
-                                  .withOpacity(0.6),
+                              fontSize: 10,
+                              color: Colors.black.withOpacity(0.6),
                               fontWeight: FontWeight.w300),
                         )
                       ],
@@ -303,8 +513,6 @@ class _addtaskState extends State<addtask> {
               ),
             ),
 
-
-
             // textf(
             //   mtitle: "Repeat",
             //   title: repeat,
@@ -319,7 +527,7 @@ class _addtaskState extends State<addtask> {
             ),
 
             Padding(
-              padding: const EdgeInsets.only(left:20.0),
+              padding: const EdgeInsets.only(left: 20.0),
               child: ToggleSwitch(
                 minWidth: 90.0,
                 minHeight: 50.0,
@@ -338,52 +546,89 @@ class _addtaskState extends State<addtask> {
                   // setState(() {
                   //   priority= index==0?'High':(index==1?'Medium':'Low');
                   // });
-                  priority= index==0?'High':(index==1?'Medium':'Low');
+                  priority =
+                      index == 0 ? 'High' : (index == 1 ? 'Medium' : 'Low');
                   print('switched to: $priority');
                 },
               ),
             ),
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                isExpanded: true,
-                hint: Text(
-                  'Select Item',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                ),
-                items: items
-                    .map((String item) => DropdownMenuItem<String>(
-                  value: item,
-                 // height: 40,
-                  child: Text(
-                    item,
-                    style: const TextStyle(
-                      fontSize: 14,
-                    ),
-                  ),
-                ))
-                    .toList(),
-                value: selectedValue,
-                onChanged: (String? value) {
-                  setState(() {
-                    selectedValue = value;
-                  });
-                },
-                //
-                // buttonStyleData: const ButtonStyleData(
-                //   padding: EdgeInsets.symmetric(horizontal: 16),
-                //   height: 40,
-                //   width: 140,
-                // ),
+            // DropdownButtonHideUnderline(
+            //   child: DropdownButton<String>(
+            //     isExpanded: true,
+            //     hint: Text(
+            //       'Select Item',
+            //       style: TextStyle(
+            //         fontSize: 14,
+            //         color: Colors.black,
+            //       ),
+            //     ),
+            //     items: items
+            //         .map((String item) => DropdownMenuItem<String>(
+            //       value: item,
+            //      // height: 40,
+            //       child: Text(
+            //         item,
+            //         style: const TextStyle(
+            //           fontSize: 14,
+            //         ),
+            //       ),
+            //     ))
+            //         .toList(),
+            //     value: selectedValue,
+            //     onChanged: (String? value) {
+            //       setState(() {
+            //         selectedValue = value;
+            //       });
+            //     },
+            //
+            //   ),
+            // ),
+            Padding(
+              padding: EdgeInsets.only(top: 15, left: 15, bottom: 5),
+              child: Text(
+                "Category",
+                style: TextStyle(color: Colors.black),
               ),
             ),
-
-            textf(
-              mtitle: "Category",
-              title: category,
-              hint: "Personal / Office",
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 15.0,
+                right: 15,
+                top: 3,
+              ),
+              child: Container(
+                height: 52,
+                width: 400,
+                // margin: EdgeInsets.only(right: 15, left: 15),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black54, width: 1.0),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: dropdownValue,
+                    elevation: 16,
+                    dropdownColor: Colors.white,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        dropdownValue = newValue!;
+                      });
+                    },
+                    items: <String>['Personal', 'Work', 'None']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(value,
+                              style: TextStyle(color: Colors.black)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ),
             textf(
               mtitle: "Label",
@@ -396,109 +641,78 @@ class _addtaskState extends State<addtask> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Padding(
-                //   padding: const EdgeInsets.all(15.0),
-                //   child: Column(
-                //     crossAxisAlignment: CrossAxisAlignment.start,
-                //     children: [
-                //       Text("Colors",style: TextStyle
-                //         (color: Colors.black),),
-                //       Wrap(
-                //         children: List<Widget>.generate(
-                //           4,
-                //             (int index){
-                //             return GestureDetector(
-                //               onTap: (){
-                //                 setState(() {
-                //                   _selectedcolor=index;
-                //                 });
-                //
-                //               },
-                //               child: Padding(
-                //                 padding: const EdgeInsets.only(right: 8.0),
-                //                 child: CircleAvatar(
-                //                   radius:14,
-                //                   backgroundColor:impcolors[index],//index==0?Color(0xFFEDE0EA):index==1?Colors.pink:Color(0xFFEDE0EA),
-                //                   child:_selectedcolor==index?Icon(Icons.done,
-                //                   color: Colors.black,
-                //                   size: 16,)
-                //
-                //                       :Container(),
-                //                 ),
-                //               ),
-                //             );
-                //
-                //             }
-                //         ),
-                //       )
-                //     ],
-                //   ),
-                // ),
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Container(
-                    height: 40,
-                    width: 120,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (taskName.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter task name'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else if (date.text=='') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter date'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else if (st.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter start time'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else if (et.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter enter end time'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else if (category.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter category'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else if (label.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Please enter label'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        } else {
-                          // All conditions are met, navigate to next page
-                          insertTask();
-                          Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => homepg()));
-                        }
-                      },
-                      child: Text(
-                        "Create task",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w200),
-                      ),
-                    ),
-                  ),
-                )
+                      height: 40,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10)),
+                      child: ElevatedButton(
+                          onPressed: () {
+
+                            if (taskName.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please enter task name'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+//none kar list ma none mens koi ma nai all ma dekhase
+                            } else if (stdate == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please select the start date'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            } else if (stdate!.isBefore(DateTime.now()
+                                .subtract(const Duration(days: 1)))) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please select future date'),
+                                  duration: Duration(seconds: 2),
+                                  // closeIconColor: Colors.redAccent,
+                                ),
+                              );
+                            } else if (duedate == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please select the due date'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            } else if (duedate!.isBefore(DateTime.now())) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Due date cannot be before start date'),
+                                  duration: Duration(seconds: 2),
+                                  //  closeIconColor: Colors.redAccent,
+                                ),
+                              );
+                            } else {
+                              // All conditions are met, navigate to next page
+                              insertTask();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => homepg(
+                                            gotoIndex: 1,
+                                          )));
+                            }
+                          },
+                          child: Text(
+                            "Create task",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w200),
+                          ))),
+                ),
               ],
+            ),
+            SizedBox(
+              height: 20,
             ),
           ],
         ),
@@ -508,11 +722,10 @@ class _addtaskState extends State<addtask> {
 
   getDate() async {
     DateTime? _pickerdate = await showDatePicker(
-        context: (context),
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2023),
-        lastDate: DateTime(2024),
-
+      context: (context),
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2024),
     );
     if (_pickerdate != null) {
       setState(() {
@@ -527,7 +740,8 @@ class _addtaskState extends State<addtask> {
     return showTimePicker(
         initialEntryMode: TimePickerEntryMode.input,
         context: context,
-        initialTime: TimeOfDay(hour: TimeOfDay.now().hour, minute: TimeOfDay.now().minute));
+        initialTime: TimeOfDay(
+            hour: TimeOfDay.now().hour, minute: TimeOfDay.now().minute));
   }
 
   gettime({required bool isStartTime}) async {
@@ -602,9 +816,9 @@ class textf extends StatelessWidget {
                       hintText: hint,
                       contentPadding: EdgeInsets.all(10.0),
                       hintStyle: TextStyle(
-                        color: Colors.black38,
-                        fontSize: 17, fontWeight: FontWeight.w300
-                      ),
+                          color: Colors.black38,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w300),
                       focusedBorder:
                           UnderlineInputBorder(borderSide: BorderSide.none)),
                 ),

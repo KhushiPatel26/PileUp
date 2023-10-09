@@ -1,13 +1,18 @@
+import 'dart:typed_data';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
 import 'package:pup/DB/models.dart';
 import 'package:pup/colors.dart';
 import 'package:pup/homepg.dart';
-
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import '../DB/ApiService3.dart';
 
 class addrem extends StatefulWidget {
@@ -17,7 +22,9 @@ class addrem extends StatefulWidget {
   @override
   State<addrem> createState() => _addremState();
 }
-
+DateTime? duedate;
+DateTime? stdate;
+int _remind = 0;
 class _addremState extends State<addrem> {
   TextEditingController remName = TextEditingController();
   TextEditingController remNote = TextEditingController();
@@ -28,14 +35,13 @@ class _addremState extends State<addrem> {
   bool doremind = false;
   String st = DateFormat("hh:mm a").format(DateTime.now()).toString();
   String et = DateFormat("hh:mm a").format(DateTime.now()).toString();
-  int _remind = 0;
-  List<int> remindlist = [0, 5, 10, 15, 20];
+
+  List<int> remindlist = [1, 5, 10, 15, 20];
   DateTime _selectedDate = DateTime.now();
   String selectDate = '';
   Color remcolor = brown;
   bool isevent=true;
-  DateTime? duedate;
-  DateTime? stdate;
+
 
   ApiService3 api = ApiService3();
 
@@ -490,18 +496,86 @@ class _addremState extends State<addrem> {
               child: ElevatedButton(
                 onPressed: () {
 
-                  _insert();
 
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      backgroundColor: Colors.black,
-                      content: Text(
-                        'Reminder Added',
-                        style: TextStyle(color: Colors.white),
-                      )));
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => homepg()));
+    if (remName.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+    content: Text('Please enter event or reminder name'),
+    duration: Duration(seconds: 2),
+    ),
+    );
+    }
+    else if (stdate==null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select the start date'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    else if (stdate!.isBefore(DateTime.now().subtract(Duration(days: 1)))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select future date'),
+          duration: Duration(seconds: 2),
+          closeIconColor: Colors.redAccent,
+        ),
+      );
+    }
+    else if (duedate==null && isevent==true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select the due date'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    else if (duedate!.isBefore(DateTime.now()) && isevent==true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Due date cannot be before start date'),
+          duration: Duration(seconds: 2),
+          closeIconColor: Colors.redAccent,
+        ),
+      );
+    }
+    else {
+       _insert();
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.black,
+          content: Text(
+            'Reminder Added',
+            style: TextStyle(color: Colors.white),
+          )));
+      // Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //         builder: (context) => homepg()));
+       if(doremind){
+         _showNotification(remName.text,remNote.text);
+         _showNotificationDue(remName.text,remNote.text);
+       }
+       Navigator.push(
+           context,
+           MaterialPageRoute(
+               builder: (context) => homepg(gotoIndex: 3,)));
+    }
+
+
+
+                  // _insert();
+                  //
+                  // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  //     backgroundColor: Colors.black,
+                  //     content: Text(
+                  //       'Reminder Added',
+                  //       style: TextStyle(color: Colors.white),
+                  //     )));
+                  // Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //         builder: (context) => homepg()));
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(
@@ -641,4 +715,110 @@ class textf extends StatelessWidget {
       ],
     );
   }
+}
+void _showNotification(String name, String desc) async {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'your_channel_id',
+    'your_channel_name',
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+//aare mane topic chnage karvu che ne
+  var platformChannelSpecifics = NotificationDetails(
+    android: androidPlatformChannelSpecifics,
+    iOS: null,
+  );
+
+  tz.initializeTimeZones(); // Initialize timezones
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Replace with your timezone
+
+  // Set the desired time (in this example, it's set to 10:00 AM)
+  var scheduledTime = tz.TZDateTime(
+    tz.local,
+    // DateTime.now().year,
+    // DateTime.now().month,
+    // DateTime.now().day,
+    // 3, // Hours (24-hour format)
+    // 22,
+    stdate!.year,
+    stdate!.month,
+    stdate!.day,
+    stdate!.hour,
+    stdate!.minute-_remind
+  );
+//
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    name,
+    desc,
+    scheduledTime,
+    platformChannelSpecifics,
+    payload: 'item x',
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation:
+    UILocalNotificationDateInterpretation.absoluteTime,
+  );
+}
+
+void _showNotificationDue(String name, String desc) async {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'your_channel_id',
+    'your_channel_name',
+    importance: Importance.max,
+    priority: Priority.high,
+    enableVibration: true
+  );
+
+  AndroidNotificationDetails progressiveNotificationDetails =
+  AndroidNotificationDetails(
+    'repeating progress channel',
+    'repeating progress channel',
+   // 'repeating progress channel description',
+    vibrationPattern: Int64List.fromList([0, 1000, 500, 1000, 500, 1000, 500]),
+    importance: Importance.max,
+    priority: Priority.high,
+    enableVibration: true,
+  );
+
+  var platformChannelSpecifics = NotificationDetails(
+    android: progressiveNotificationDetails,//androidPlatformChannelSpecifics,
+    iOS: null,
+  );//5thai aavu juiye ej
+
+  tz.initializeTimeZones(); // Initialize timezones
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Replace with your timezone
+
+  // Set the desired time (in this example, it's set to 10:00 AM)
+  var scheduledTime = tz.TZDateTime(
+      tz.local,
+      // DateTime.now().year,
+      // DateTime.now().month,
+      // DateTime.now().day,
+      // 3, // Hours (24-hour format)
+      // 22,
+      duedate!.year,
+      duedate!.month,
+      duedate!.day,
+      duedate!.hour,
+      duedate!.minute-_remind
+  );
+//
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    'Due:'+name,
+    desc,
+    scheduledTime,
+    platformChannelSpecifics,
+    payload: 'item x',
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation:
+    UILocalNotificationDateInterpretation.absoluteTime,
+  );
+
 }

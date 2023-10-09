@@ -1,27 +1,46 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
-import 'package:pup/colors.dart';
+import 'package:pup/DB/models.dart';
+import 'package:pup/homepg.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:html/parser.dart' show parse;
+//import 'package:html/dom.dart';
+import '../DB/ApiService3.dart';
+import '../colors.dart';
 
-class assigntask extends StatefulWidget {
-  const assigntask({Key? key}) : super(key: key);
+class addproj extends StatefulWidget {
+  const addproj({Key? key}) : super(key: key);
 
   @override
-  State<assigntask> createState() => _assigntaskState();
+  State<addproj> createState() => _addprojState();
 }
 
-class _assigntaskState extends State<assigntask> {
+Random _random = Random();
+Color _getRandomColor() {
+  int r = _random.nextInt(250);
+  int g = _random.nextInt(250);
+  int b = _random.nextInt(250);
+  return Color.fromRGBO(r, g, b, 1.0);
+}
+Map<String, Color> mem = {};
+Map<String, String> name_id = {};
+List<String> selectedMembers = [];
+String? uid;
+class _addprojState extends State<addproj> {
   late QuillEditorController controller;
-  TextEditingController tasktopic = TextEditingController();
-  TextEditingController taskdesc = TextEditingController();
+  TextEditingController projname = TextEditingController();
+  String projdesc = '';
+  TextEditingController label = TextEditingController();
   DateTime? duedate;
-  List<String> assignToPeople = [];
+  List<String> addedMem = [];
   String priority = "Medium";
-  String status = "In Progress";
-  List<String> subtasks = [];
+  List<String> labels = [];
 
   Color _backgroundColor = Color(0xFF212121);
   final _toolbarColor = Colors.black; //grey.shade200;
@@ -68,6 +87,7 @@ class _assigntaskState extends State<assigntask> {
   bool _hasFocus = false;
   bool maintoolbox = true;
   List<ToolBarStyle> toolList = [];
+
   @override
   void initState() {
     controller = QuillEditorController();
@@ -78,6 +98,11 @@ class _assigntaskState extends State<assigntask> {
     //   debugPrint('Editor Loaded :)');
     // });
     super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
+    _fetchData();
   }
 
   @override
@@ -85,6 +110,82 @@ class _assigntaskState extends State<assigntask> {
     /// please do not forget to dispose the controller
     controller.dispose();
     super.dispose();
+    selectedMembers.clear();
+    projname.clear();
+    label.clear();
+  }
+  ApiService3 api = ApiService3();
+
+  List<Project> proj=[];
+  List<Comp_Mem> compmem=[];
+  List<Userstb> users=[];
+  String compCode="";
+
+  Future<void> _fetchData() async {
+    final data2 = await api.readRecords('Comp_Mem');
+    setState(() {
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.uid==uid).toList();
+      compCode=compmem[0].companyCode;
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compCode).toList();
+    });
+    print("Comp_Mem:");
+    print(compmem);
+
+    final data3 = await api.readRecords('Users');
+    setState(() {
+      for(int i=0;i<compmem.length;i++){
+        users = data3.map((json) => Userstb.fromJson(json)).where((element) => element.uid==compmem[i].uid).toList();
+        mem.putIfAbsent(users[0].name, () => _getRandomColor());
+        name_id.putIfAbsent(users[0].name, () => users[0].uid!);
+      }
+    });
+    print("Users:");
+    print(users);
+  }
+
+  Future<void> _insert() async {
+    final record = Project(
+        compCode: compCode,
+        name: projname.text,
+        description: projdesc,
+        creationDate: DateTime.now().toString(),
+        dueDate: duedate.toString(),
+        priority: priority,
+        progress: 0.0,
+        tags: label.text,
+    );
+    await api.createRecord('Project', record.toJson());
+    print("Successfully row added in Project");
+    await _fetchProjmem();
+  }
+
+  Future<void> _fetchProjmem() async{
+    print("in");
+    final data = await api.readRecords('Project');
+    setState(() {
+      proj = data.map((json) => Project.fromJson(json)).where((element) => element.compCode==compCode && element.name==projname.text).toList();
+    });
+    print("Proj:");
+    print(proj);
+    _insertProjMem();
+  }
+
+  Future<void> _insertProjMem() async{
+    var record2= ProjMem(
+        uid: uid!,
+        projectId: proj[0].projectId!,
+        isHead: 'true'
+    );
+    await api.createRecord('Proj_Mem', record2.toJson());
+    for(int i=0;i<selectedMembers.length;i++) {
+      var record2= ProjMem(
+          uid: name_id[selectedMembers[i]]!,
+          projectId: proj[0].projectId!,
+          isHead: 'false'
+      );
+      await api.createRecord('Proj_Mem', record2.toJson());
+      print("Successfully row added in Project Members");
+    }
   }
 
   @override
@@ -94,7 +195,7 @@ class _assigntaskState extends State<assigntask> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          "Assign Task",
+          "Add Project",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
         ),
         leading: IconButton(
@@ -110,19 +211,35 @@ class _assigntaskState extends State<assigntask> {
           Padding(
               padding: const EdgeInsets.all(8),
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      backgroundColor: Colors.white,
-                      content: Text(
-                        'Message Posted',
-                        style: TextStyle(color: Colors.black),
-                      )));
+                onPressed: ()  {
+                  if(projname.text==null){
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        backgroundColor: Colors.black,
+                        content: Text(
+                          'Add Project Title',
+                          style: TextStyle(color: Colors.white),
+                        )));
+                  }else{
+                    descText();
+                    _insert();
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        backgroundColor: Colors.black,
+                        content: Text(
+                          'Project Added',
+                          style: TextStyle(color: Colors.white),
+                        )));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => homepg(gotoIndex: 2)));
+                  }
+
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(
                       top: 3.0, bottom: 3.0, left: 3.0, right: 3.0),
                   child: Text(
-                    "SEND",
+                    "ADD",
                     style: TextStyle(
                         wordSpacing: 2,
                         color: Colors.white,
@@ -144,11 +261,11 @@ class _assigntaskState extends State<assigntask> {
       body: SingleChildScrollView(
         child: Padding(
           padding:
-              const EdgeInsets.only(top: 10.0, bottom: 10, left: 15, right: 15),
+          const EdgeInsets.only(top: 10.0, bottom: 10, left: 15, right: 15),
           child: Column(
             children: [
               textf(
-                  mtitle: "Task Name", title: tasktopic, hint: "Task Name..."),
+                  mtitle: "Project Name", title: projname, hint: "Project Name..."),
               Padding(
                 padding: const EdgeInsets.only(
                     top: 10.0, bottom: 10, left: 15, right: 15),
@@ -156,7 +273,7 @@ class _assigntaskState extends State<assigntask> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Assign to:",
+                      "Add Members:",
                       style: TextStyle(color: Colors.black),
                     ),
                     Container(
@@ -165,7 +282,23 @@ class _assigntaskState extends State<assigntask> {
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(color: Colors.black, width: 0.7)),
                       child: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              enableDrag: true,
+                              context: context,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadiusDirectional.only(
+                                  topEnd: Radius.circular(25),
+                                  topStart: Radius.circular(25),
+                                ),
+                              ),
+                              builder: (BuildContext context) {
+                                return SingleChildScrollView(child: MemberListBottomSheet());
+                              },
+                            );
+                          },
                           icon: Icon(
                             Icons.person,
                             color: Colors.black,
@@ -188,13 +321,13 @@ class _assigntaskState extends State<assigntask> {
                     Padding(
                       padding: const EdgeInsets.only(left: 10.0, top: 10),
                       child: Text(
-                        "Task Description",
+                        "Project Description",
                         style: TextStyle(color: Colors.black),
                       ),
                     ),
                     QuillHtmlEditor(
                       //  text: "<h1>Hello</h1>This is a <b>quill</b> html editor example 😊",
-                      hintText: 'Write description',
+                      hintText: 'Write description of the project',
                       controller: controller,
                       isEnabled: true,
                       //ensureVisible: false,
@@ -254,16 +387,16 @@ class _assigntaskState extends State<assigntask> {
                                         padding: const EdgeInsets.all(8),
                                         iconSize: 25,
                                         iconColor:
-                                            Colors.grey, //_toolbarIconColor,
+                                        Colors.grey, //_toolbarIconColor,
                                         activeIconColor: Colors
                                             .white, //greenAccent.shade100,
                                         controller: controller,
                                         crossAxisAlignment:
-                                            WrapCrossAlignment.start,
+                                        WrapCrossAlignment.start,
                                         direction: Axis.horizontal,
                                         toolBarConfig:
-                                            toolList //fileTools//cleanTools//strucTools//unreTools//sizeTools//formatTools//texteditingTools//alignTools,
-                                        ),
+                                        toolList //fileTools//cleanTools//strucTools//unreTools//sizeTools//formatTools//texteditingTools//alignTools,
+                                    ),
                                   ),
                                 ),
                                 IconButton(
@@ -393,7 +526,7 @@ class _assigntaskState extends State<assigntask> {
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -406,21 +539,30 @@ class _assigntaskState extends State<assigntask> {
                         ),
                         Text(duedate != null?"${DateFormat('dd/MM/yyyy HH:mm').format(duedate!)}":"Select Due Date -",
                             style:
-                                TextStyle(color: Colors.black.withOpacity(0.5)))
+                            TextStyle(color: Colors.black.withOpacity(0.5))),
+                        Visibility(
+                          visible:duedate!=null?duedate!.isBefore(DateTime.now()):false ,
+                          child: Text(
+                            "Set End date timing after the Start date timing!",
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.red.withOpacity(0.6),
+                                fontWeight: FontWeight.w400),
+                          ),
+                        )
                       ],
                     ),
                     Container(
                         decoration: BoxDecoration(
                             color: Colors.transparent,
-                            border: Border.all(color: Colors.black, width: 0.7),
+                            border: Border.all(color: duedate!=null?(duedate!.isBefore(DateTime.now())?Colors.red:Colors.black):Colors.black, width: duedate!=null?(duedate!.isBefore(DateTime.now())?0.7:0.2):0.2),
                             borderRadius: BorderRadius.circular(30)),
                         child: IconButton(
                             onPressed: () async {
                               DateTime? dateTime = await showOmniDateTimePicker(
                                 context: context,
                                 initialDate: DateTime.now(),
-                                firstDate: DateTime(1600)
-                                    .subtract(const Duration(days: 3652)),
+                                firstDate: DateTime.now(),
                                 lastDate: DateTime.now().add(
                                   const Duration(days: 3652),
                                 ),
@@ -430,7 +572,7 @@ class _assigntaskState extends State<assigntask> {
                                 secondsInterval: 1,
                                 isForce2Digits: true,
                                 borderRadius:
-                                    const BorderRadius.all(Radius.circular(16)),
+                                const BorderRadius.all(Radius.circular(16)),
                                 constraints: const BoxConstraints(
                                   maxWidth: 350,
                                   maxHeight: 650,
@@ -448,7 +590,7 @@ class _assigntaskState extends State<assigntask> {
                                   );
                                 },
                                 transitionDuration:
-                                    const Duration(milliseconds: 200),
+                                const Duration(milliseconds: 200),
                                 barrierDismissible: true,
                                 selectableDayPredicate: (dateTime) {
                                   // Disable 25th Feb 2023
@@ -459,14 +601,14 @@ class _assigntaskState extends State<assigntask> {
                                   }
                                 },
                               );
-setState(() {
-  duedate=dateTime;
-});
+                              setState(() {
+                                duedate=dateTime;
+                              });
                               print("dateTime: $dateTime");
                             },
                             icon: Icon(
                               LineIcons.calendarAlt,
-                              color: Colors.black,
+                              color: duedate!=null?(duedate!.isBefore(DateTime.now())?Colors.red:Colors.black):Colors.black,
                             )))
                   ],
                 ),
@@ -511,65 +653,8 @@ setState(() {
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text("Status:",style: TextStyle(color: Colors.black)),
-                  ),
-                  Container(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle,color: Colors.green.withOpacity(0.6),size: 10,),
-                          Text("   In Progress",style: TextStyle(color: Colors.green.withOpacity(0.6))),
-                        ],
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      color: green.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.green.withOpacity(0.6))
-                    ),
-                  )
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(onPressed: (){}, icon: Icon(Icons.add_circle_outlined,color: Colors.black,)),
-                  Text("Add Subtask",style: TextStyle(color: Colors.black))
-                ],
-              ),
-              //for(int i=0;i<subtasks.length;i++)
-              Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: false,
-                          onChanged: (bool? value) { },
-                          side: BorderSide(
-                              color: Colors
-                                  .black), // Reduce the checkbox size
-                          shape: CircleBorder(),
-                        ),
-                        Text("Subtask 1",style: TextStyle(color: Colors.black)),
-                      ],
-                    ),
-                    IconButton(onPressed: (){}, icon: Icon(Icons.close,color: Colors.black,size: 18,))
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  IconButton(onPressed: (){}, icon: Icon(Icons.add_circle_outlined,color: Colors.black,)),
-                  Text("Attach Files",style: TextStyle(color: Colors.black))
-                ],
-              ),
+              textf(
+                  mtitle: "Label", title: label, hint: "Separate Labels by comma (,) "),
             ],
           ),
         ),
@@ -584,11 +669,12 @@ setState(() {
       spacing: 6.0,
       runSpacing: 4.0,
       children: <Widget>[
-        _buildChip('Gamer', pink),
-        _buildChip('Hacker', blue),
-        _buildChip('Developer', brown),
-        _buildChip('Racer', orange),
-        _buildChip('Traveller', green),
+        for(int i=0;i<selectedMembers.length;i++)
+         _buildChip(selectedMembers[i], mem[selectedMembers[i]]!),
+        // _buildChip('Hacker', blue),
+        // _buildChip('Developer', brown),
+        // _buildChip('Racer', orange),
+        // _buildChip('Traveller', green),
       ],
     );
   }
@@ -605,7 +691,8 @@ setState(() {
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.w400),
       ),
       onDeleted: () {
-        // Do something when the chip is deleted
+        print("delete");
+        selectedMembers.remove(label);// Do something when the chip is deleted
       },
       side: BorderSide(color: color),
       backgroundColor: color.withOpacity(0.9),
@@ -621,6 +708,14 @@ setState(() {
     debugPrint(htmlText);
   }
 
+  void descText() async {
+    //projdesc
+    String htmlString = await controller.getText();
+    final document = parse(htmlString);
+    String parsedString = parse(document.body!.text).documentElement!.text;
+    projdesc = parsedString;
+    //debugPrint(htmlText);
+  }
   ///[setHtmlText] to set the html text to editor
   void setHtmlText(String text) async {
     await controller.setText(text);
@@ -652,6 +747,7 @@ setState(() {
 
   /// method to un focus editor
   void unFocusEditor() => controller.unFocus();
+
 }
 
 class textf extends StatelessWidget {
@@ -711,8 +807,8 @@ class textf extends StatelessWidget {
               widget == null
                   ? Container()
                   : Container(
-                      child: widget,
-                    )
+                child: widget,
+              )
             ],
           ),
         ),
@@ -721,113 +817,87 @@ class textf extends StatelessWidget {
   }
 }
 
-/*
-ElevatedButton(
-                onPressed: () async {
-                  DateTime? dateTime = await showOmniDateTimePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate:
-                        DateTime(1600).subtract(const Duration(days: 3652)),
-                    lastDate: DateTime.now().add(
-                      const Duration(days: 3652),
-                    ),
-                    is24HourMode: false,
-                    isShowSeconds: false,
-                    minutesInterval: 1,
-                    secondsInterval: 1,
-                    isForce2Digits: true,
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                    constraints: const BoxConstraints(
-                      maxWidth: 350,
-                      maxHeight: 650,
-                    ),
-                    transitionBuilder: (context, anim1, anim2, child) {
-                      return FadeTransition(
-                        opacity: anim1.drive(
-                          Tween(
-                            begin: 0,
-                            end: 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    transitionDuration: const Duration(milliseconds: 200),
-                    barrierDismissible: true,
-                    selectableDayPredicate: (dateTime) {
-                      // Disable 25th Feb 2023
-                      if (dateTime == DateTime(2023, 2, 25)) {
-                        return false;
-                      } else {
-                        return true;
-                      }
-                    },
-                  );
+class MemberListBottomSheet extends StatefulWidget {
+  @override
+  _MemberListBottomSheetState createState() => _MemberListBottomSheetState();
+}
 
-                  print("dateTime: $dateTime");
-                },
-                child: const Text(
-                  "Show DateTime Picker",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  List<DateTime>? dateTimeList =
-                      await showOmniDateTimeRangePicker(
-                    context: context,
-                    startInitialDate: DateTime.now(),
-                    startFirstDate:
-                        DateTime(1600).subtract(const Duration(days: 3652)),
-                    startLastDate: DateTime.now().add(
-                      const Duration(days: 3652),
-                    ),
-                    endInitialDate: DateTime.now(),
-                    endFirstDate:
-                        DateTime(1600).subtract(const Duration(days: 3652)),
-                    endLastDate: DateTime.now().add(
-                      const Duration(days: 3652),
-                    ),
-                    is24HourMode: false,
-                    isShowSeconds: false,
-                    minutesInterval: 1,
-                    secondsInterval: 1,
-                    isForce2Digits: true,
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                    constraints: const BoxConstraints(
-                      maxWidth: 350,
-                      maxHeight: 650,
-                    ),
-                    transitionBuilder: (context, anim1, anim2, child) {
-                      return FadeTransition(
-                        opacity: anim1.drive(
-                          Tween(
-                            begin: 0,
-                            end: 1,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    transitionDuration: const Duration(milliseconds: 200),
-                    barrierDismissible: true,
-                    selectableDayPredicate: (dateTime) {
-                      // Disable 25th Feb 2023
-                      if (dateTime == DateTime(2023, 2, 25)) {
-                        return false;
-                      } else {
-                        return true;
-                      }
-                    },
-                  );
+class _MemberListBottomSheetState extends State<MemberListBottomSheet> {
 
-                  print("Start dateTime: ${dateTimeList?[0]}");
-                  print("End dateTime: ${dateTimeList?[1]}");
-                },
-                child: const Text(
-                  "Show DateTime Range Picker",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-* */
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Add Members",style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500, fontSize: 20)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                if(selectedMembers.length==0)
+                  CircleAvatar(
+                    child: Icon(Icons.person_add_alt_sharp),
+                    backgroundColor: Colors.transparent,
+                  ),
+
+                if(selectedMembers.length>0)
+                  for(int i=0;i<selectedMembers.length;i++)
+                    Padding(
+                      padding: EdgeInsets.only(left: i.toDouble()*10.0),
+                      child: CircleAvatar(
+                        backgroundColor: mem[selectedMembers[i]],
+                        child: Text(selectedMembers[i][0]),
+                      ),
+                    )
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: mem.length,
+              itemBuilder: (context, index) {
+                return name_id[mem.keys.elementAt(index)]!=uid? ListTile(
+                  leading: CircleAvatar(child: Text(mem.keys.elementAt(index)[0]),
+                    backgroundColor: mem.values.elementAt(index),
+                  ),
+                  title: Text(mem.keys.elementAt(index),
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  trailing: Checkbox(
+                    side: BorderSide(color: Colors.black),
+                    shape: CircleBorder(),
+                    activeColor: Colors.black,
+                    value: selectedMembers.contains(mem.keys.elementAt(index)),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedMembers.add(mem.keys.elementAt(index));
+                        } else {
+                          selectedMembers.remove(mem.keys.elementAt(index));
+                        }
+                      });
+                    },
+                  ),
+                ) : Container();
+              },
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Do something with the selected members
+              setState(() {
+                selectedMembers=selectedMembers;
+              });
+              print('Selected Members: $selectedMembers');
+              Navigator.pop(context);
+            },
+            child: Text('Add Members',style: TextStyle(color: Colors.white),),
+          ),
+        ],
+      ),
+    );
+  }
+}

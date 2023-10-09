@@ -12,29 +12,26 @@ import 'calendar/cal3.dart';
 import 'firebase_options.dart';
 import 'homepg.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import 'mystuff/note/SignaturePadPage.dart';
+import 'mystuff/note/notes.dart';
 import 'mystuff/note/quill.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()?.requestPermission();
-  var initializationSettingsAndroid = AndroidInitializationSettings('codex_logo');
-  // var initializationSettingsIOS = IOSInitializationSettings(
-  //     requestAlertPermission: true,
-  //     requestBadgePermission: true,
-  //     requestSoundPermission: true,
-  //     onDidReceiveLocalNotification: (int id, String? title, String? body, String? payload) async {});
-  var initializationSettings = InitializationSettings(android: initializationSettingsAndroid);//, iOS: initializationSettingsIOS);
-  // await flutterLocalNotificationsPlugin.initialize(initializationSettings,  onSelectNotification: (String? payload) async {
-  //   if (payload != null) {
-  //     debugPrint('notification payload: ' + payload);
-  //   }
-  // }); bol 3rd otp
-  WidgetsFlutterBinding.ensureInitialized();
+
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  var initializationSettingsAndroid =
+  AndroidInitializationSettings('@mipmap/ic_launcher');
+  var initializationSettings =
+  InitializationSettings(android: initializationSettingsAndroid);
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -58,7 +55,51 @@ void main() async {
       'navigationbar':(context)=>EntryPoint(),
     },*/
   ));
+
 }
+void _showNotification() async {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'your_channel_id',
+    'your_channel_name',
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  var platformChannelSpecifics = NotificationDetails(
+    android: androidPlatformChannelSpecifics,
+    iOS: null,
+  );
+
+  tz.initializeTimeZones(); // Initialize timezones
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Replace with your timezone
+
+  // Set the desired time (in this example, it's set to 10:00 AM)
+  var scheduledTime = tz.TZDateTime(
+    tz.local,
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+    3, // Hours (24-hour format)
+    15,  // Minutes
+  );
+
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    'New Notification',
+    'This is a notification triggered by a button click',
+    scheduledTime,
+    platformChannelSpecifics,
+    payload: 'item x',
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation:
+    UILocalNotificationDateInterpretation.absoluteTime,
+  );
+}
+
+
 
 class AuthenticationWrapper extends StatelessWidget {
   @override
@@ -73,7 +114,7 @@ class AuthenticationWrapper extends StatelessWidget {
             return welcome();
           } else {
             // User logged in
-            return homepg();
+            return homepg(gotoIndex: 0,);
           }
         }
         return Scaffold(
@@ -85,3 +126,4 @@ class AuthenticationWrapper extends StatelessWidget {
     );
   }
 }
+

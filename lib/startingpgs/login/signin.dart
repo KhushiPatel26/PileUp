@@ -34,7 +34,7 @@ class _signinState extends State<signin> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => homepg()));
+              builder: (context) => homepg(gotoIndex: 0,)));
     } on FirebaseAuthException catch (e) {
       print('Failed to sign in: $e');
     }
@@ -67,7 +67,7 @@ class _signinState extends State<signin> {
           // Successfully authenticated
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => homepg()),
+            MaterialPageRoute(builder: (context) => homepg(gotoIndex: 0,)),
           );
         } else if (response.statusCode == 400) {
           // Email not registered or incorrect password
@@ -76,7 +76,7 @@ class _signinState extends State<signin> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Email is not registered.')),
             );
-          } else if (errorMessage == 'Incorrect password') {
+          } else if (errorMessage == 'The password is invalid or the user does not have a password') {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Incorrect password.')),
             );

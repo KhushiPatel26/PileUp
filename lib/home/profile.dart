@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pup/startingpgs/welcome.dart';
+import '../DB/ApiService3.dart';
 import '../DB/models.dart';
 
 class profile extends StatefulWidget {
@@ -18,7 +19,7 @@ class _profileState extends State<profile> {
   // List<Userstb> items = [];
   // List<Userstb> login = [];
   List<Userstb> _profile = [];
-  final ApiService_Userstb apiService = ApiService_Userstb();
+  //final ApiService_Userstb apiService = ApiService_Userstb();
 
   @override
   void initState() {
@@ -31,11 +32,14 @@ class _profileState extends State<profile> {
     _fetchData();
     // fetchPostsById(uid);
   }
-
+  ApiService3 api = ApiService3();
   Future<void> _fetchData() async {
-    final data = await apiService.readRecords('users');
+    final data = await api.readRecords('users');
     setState(() {
-      _profile = data.where((user) => user.uid==uid).toList();
+      _profile = data
+          .map((json) => Userstb.fromJson(json))
+          .where((element) => element.uid == uid)
+          .toList();//data.where((user) => user.uid==uid).toList();
     });
     print("PROFILE..........");
     print(_profile[0].uid.toString() +" "+_profile[0].name);

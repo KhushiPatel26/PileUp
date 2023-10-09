@@ -17,44 +17,40 @@ import 'calendar/cal.dart';
 
 
 class homepg extends StatefulWidget {
-
-  const homepg({Key? key}) : super(key: key);
+  final int gotoIndex;
+  const homepg({Key? key, required this.gotoIndex}) : super(key: key);
 
   @override
   State<homepg> createState() => _homepgState();
 }
 
+bool isProf=true;
 class _homepgState extends State<homepg> {
-  int _selectedIndex = 0;
-  bool isProf=true;
+  late int _selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.gotoIndex > 1
+        ? (isProf ? widget.gotoIndex : widget.gotoIndex - 1)
+        : widget.gotoIndex;
+  }
+
+
   // static const TextStyle optionStyle =
   // TextStyle(fontSize: 30, fontWeight: FontWeight.w600);
   static  List _Professional = [
     homeall(),
-    myStuff(),//addtask(),
+    myStuff(),
     projhome(),
-   //contactBook(),
     cal(),
     cont()
-    //contacts()//contlist()//contact()//home(),
-    //home(),
-    //mystuff(),
-    //projects(),
-    //calendar(),
-    //people(),
   ];
   static const List _Personal = [
-    //contactBook(),
-    //addtask(),
     homeall(),
     myStuff(),
-    cal(),// projhome(),
-    contacts()//home(),
-    //home(),
-    //mystuff(),
-    //projects(),
-    //calendar(),
-    //people(),
+    cal(),
+    contacts()
   ];
 
   @override
