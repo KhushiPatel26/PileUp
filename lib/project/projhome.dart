@@ -24,10 +24,8 @@ String compcode='';
 class _projhomeState extends State<projhome> {
   int _selectedIndex = 0;
   List<String> _status = [
-    "To Do",
     "In Progress",
     "Review",
-    "Pending",
     "Completed"
   ];
   String? uid;

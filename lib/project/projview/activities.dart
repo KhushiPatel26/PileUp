@@ -3,7 +3,8 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 class activities extends StatefulWidget {
-  const activities({Key? key}) : super(key: key);
+  final int projId;
+  const activities({Key? key, required this.projId}) : super(key: key);
 
   @override
   State<activities> createState() => _activitiesState();
@@ -300,39 +301,39 @@ class _activitiesState extends State<activities> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              top: 10.0,),
-            child: Row(
-              children: [
-                Text(
-                  "Pending ",
-                  style: TextStyle(
-                      fontSize: 25, color: Colors.black),
-                ),
-                Container(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        top: 1.0,
-                        bottom: 1.0,
-                        left: 5,
-                        right: 5),
-                    child: Text(
-                      " 4 ",
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.1),
-                      borderRadius: BorderRadius.all(
-                          Radius.circular(10))),
-                )
-              ],
-            ),
-          ),
+          // Padding(
+          //   padding: EdgeInsets.only(
+          //     top: 10.0,),
+          //   child: Row(
+          //     children: [
+          //       Text(
+          //         "Pending ",
+          //         style: TextStyle(
+          //             fontSize: 25, color: Colors.black),
+          //       ),
+          //       Container(
+          //         child: Padding(
+          //           padding: const EdgeInsets.only(
+          //               top: 1.0,
+          //               bottom: 1.0,
+          //               left: 5,
+          //               right: 5),
+          //           child: Text(
+          //             " 4 ",
+          //             style: TextStyle(
+          //                 fontSize: 13,
+          //                 color: Colors.black,
+          //                 fontWeight: FontWeight.w500),
+          //           ),
+          //         ),
+          //         decoration: BoxDecoration(
+          //             color: Colors.black.withOpacity(0.1),
+          //             borderRadius: BorderRadius.all(
+          //                 Radius.circular(10))),
+          //       )
+          //     ],
+          //   ),
+          // ),
           Padding(
             padding: EdgeInsets.only(
               top: 10.0,),

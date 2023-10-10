@@ -1,7 +1,10 @@
 import 'dart:convert';
-
+import 'dart:typed_data';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:line_icons/line_icons.dart';
@@ -118,7 +121,7 @@ class _addtaskState extends State<addtask> {
           "Add Task",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.w300),
         ),
-        
+
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -133,7 +136,7 @@ class _addtaskState extends State<addtask> {
             ),
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -151,7 +154,7 @@ class _addtaskState extends State<addtask> {
                         height: 40,
                         decoration: BoxDecoration(
                             border:
-                                Border.all(color: Colors.black, width: 0.2)),
+                            Border.all(color: Colors.black, width: 0.2)),
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Row(
@@ -172,52 +175,52 @@ class _addtaskState extends State<addtask> {
                                   child: IconButton(
                                       onPressed: () async {
                                         DateTime? dateTime =
-                                            await showOmniDateTimePicker(
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime.now(),
-                                                lastDate: DateTime.now().add(
-                                                  const Duration(days: 3652),
+                                        await showOmniDateTimePicker(
+                                            context: context,
+                                            initialDate: DateTime.now(),
+                                            firstDate: DateTime.now(),
+                                            lastDate: DateTime.now().add(
+                                              const Duration(days: 3652),
+                                            ),
+                                            is24HourMode: false,
+                                            isShowSeconds: false,
+                                            minutesInterval: 1,
+                                            secondsInterval: 1,
+                                            isForce2Digits: true,
+                                            borderRadius:
+                                            const BorderRadius.all(
+                                                Radius.circular(16)),
+                                            constraints:
+                                            const BoxConstraints(
+                                              maxWidth: 350,
+                                              maxHeight: 650,
+                                            ),
+                                            transitionBuilder: (context,
+                                                anim1, anim2, child) {
+                                              return FadeTransition(
+                                                opacity: anim1.drive(
+                                                  Tween(
+                                                    begin: 0,
+                                                    end: 1,
+                                                  ),
                                                 ),
-                                                is24HourMode: false,
-                                                isShowSeconds: false,
-                                                minutesInterval: 1,
-                                                secondsInterval: 1,
-                                                isForce2Digits: true,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(16)),
-                                                constraints:
-                                                    const BoxConstraints(
-                                                  maxWidth: 350,
-                                                  maxHeight: 650,
-                                                ),
-                                                transitionBuilder: (context,
-                                                    anim1, anim2, child) {
-                                                  return FadeTransition(
-                                                    opacity: anim1.drive(
-                                                      Tween(
-                                                        begin: 0,
-                                                        end: 1,
-                                                      ),
-                                                    ),
-                                                    child: child,
-                                                  );
-                                                },
-                                                transitionDuration:
-                                                    const Duration(
-                                                        milliseconds: 200),
-                                                barrierDismissible: true,
-                                                selectableDayPredicate:
-                                                    (dateTime) {
-                                                  // Disable 25th Feb 2023
-                                                  if (dateTime ==
-                                                      DateTime(2023, 2, 25)) {
-                                                    return false;
-                                                  } else {
-                                                    return true;
-                                                  }
-                                                });
+                                                child: child,
+                                              );
+                                            },
+                                            transitionDuration:
+                                            const Duration(
+                                                milliseconds: 200),
+                                            barrierDismissible: true,
+                                            selectableDayPredicate:
+                                                (dateTime) {
+                                              // Disable 25th Feb 2023
+                                              if (dateTime ==
+                                                  DateTime(2023, 2, 25)) {
+                                                return false;
+                                              } else {
+                                                return true;
+                                              }
+                                            });
 
                                         setState(() {
                                           stdate=dateTime;
@@ -238,7 +241,7 @@ class _addtaskState extends State<addtask> {
                         height: 40,
                         decoration: BoxDecoration(
                             border:
-                                Border.all(color: duedate!=null?(duedate!.isBefore(stdate!)?Colors.red:Colors.black):Colors.black, width: duedate!=null?(duedate!.isBefore(stdate!)?0.7:0.2):0.2)),
+                            Border.all(color: duedate!=null?(duedate!.isBefore(stdate!)?Colors.red:Colors.black):Colors.black, width: duedate!=null?(duedate!.isBefore(stdate!)?0.7:0.2):0.2)),
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Row(
@@ -547,7 +550,7 @@ class _addtaskState extends State<addtask> {
                   //   priority= index==0?'High':(index==1?'Medium':'Low');
                   // });
                   priority =
-                      index == 0 ? 'High' : (index == 1 ? 'Medium' : 'Low');
+                  index == 0 ? 'High' : (index == 1 ? 'Medium' : 'Low');
                   print('switched to: $priority');
                 },
               ),
@@ -694,12 +697,13 @@ class _addtaskState extends State<addtask> {
                             } else {
                               // All conditions are met, navigate to next page
                               insertTask();
+                              _showNotificationDue(taskName.text, taskDesc.text);
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => homepg(
-                                            gotoIndex: 1,
-                                          )));
+                                        gotoIndex: 1,
+                                      )));
                             }
                           },
                           child: Text(
@@ -769,7 +773,69 @@ class _addtaskState extends State<addtask> {
       }
     }
   }
+  void _showNotificationDue(String name, String desc) async {
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your_channel_id',
+        'your_channel_name',
+        importance: Importance.max,
+        priority: Priority.high,
+        enableVibration: true
+    );
+
+    AndroidNotificationDetails progressiveNotificationDetails =
+    AndroidNotificationDetails(
+      'repeating progress channel',
+      'repeating progress channel',
+      // 'repeating progress channel description',
+      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000, 500, 1000, 500]),
+      importance: Importance.max,
+      priority: Priority.high,
+      enableVibration: true,
+    );
+
+    var platformChannelSpecifics = NotificationDetails(
+      android: progressiveNotificationDetails,//androidPlatformChannelSpecifics,
+      iOS: null,
+    );//5thai aavu juiye ej
+
+    tz.initializeTimeZones(); // Initialize timezones
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata')); // Replace with your timezone
+
+    // Set the desired time (in this example, it's set to 10:00 AM)
+    var scheduledTime = tz.TZDateTime(
+        tz.local,
+        // DateTime.now().year,
+        // DateTime.now().month,
+        // DateTime.now().day,
+        // 3, // Hours (24-hour format)
+        // 22,
+        duedate!.year,
+        duedate!.month,
+        duedate!.day,
+        duedate!.hour,
+        duedate!.minute-_remind
+    );
+//
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      0,
+      'Due:'+name,
+      desc,
+      scheduledTime,
+      platformChannelSpecifics,
+      payload: 'item x',
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+    );
+
+  }
+
 }
+
+
 
 class textf extends StatelessWidget {
   final TextEditingController? title;
@@ -820,14 +886,14 @@ class textf extends StatelessWidget {
                           fontSize: 17,
                           fontWeight: FontWeight.w300),
                       focusedBorder:
-                          UnderlineInputBorder(borderSide: BorderSide.none)),
+                      UnderlineInputBorder(borderSide: BorderSide.none)),
                 ),
               ),
               widget == null
                   ? Container()
                   : Container(
-                      child: widget,
-                    )
+                child: widget,
+              )
             ],
           ),
         ),

@@ -58,7 +58,7 @@ class ApiService_Userstb extends ApiService2<Userstb> {
 
 class ToDoTask {
   final String usId;
-  final int taskId;
+  int? taskId;
   final String taskName;
   String taskDesc;
   final double precent;
@@ -74,7 +74,7 @@ class ToDoTask {
 
   ToDoTask({
     required this.usId,
-    required this.taskId,
+    this.taskId,
     required this.taskName,
     required this.taskDesc,
     required this.precent,
@@ -388,18 +388,18 @@ class ApiService_Reminder extends ApiService2<Reminder> {
 }
 
 class Subtask {
-  final int stId;
+  int? stId;
   final int taskId; // Reference to ToDoTasks taskId
   final String subtaskName;
-  final String subtaskDescription;
+  String? subtaskDescription;
   final String priority;
   final String isCompleted;
 
   Subtask({
-    required this.stId,
+    this.stId,
     required this.taskId,
     required this.subtaskName,
-    required this.subtaskDescription,
+    this.subtaskDescription,
     required this.priority,
     required this.isCompleted,
   });
@@ -671,4 +671,129 @@ class PSContact {
     'category': category,
     'label': label,
   };
+}
+
+class Msg {
+  int? msgid;
+  int pid;
+  String uid;
+  String msg;
+  String isfile;
+  String timing;
+
+  Msg({this.msgid, required this.pid, required this.uid, required this.msg, required this.isfile, required this.timing});
+
+  factory Msg.fromJson(Map<String, dynamic> json) {
+    return Msg(
+      msgid: json['msgid'],
+      pid: json['Pid'],
+      uid: json['Uid'],
+      msg: json['Msg'],
+      isfile: json['isfile'],
+      timing: json['timing'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['msgid'] = this.msgid;
+    data['Pid'] = this.pid;
+    data['Uid'] = this.uid;
+    data['Msg'] = this.msg;
+    data['isfile'] = this.isfile;
+    data['timing'] = this.timing;
+    return data;
+  }
+}
+class AssTask {
+  int pid;
+  int? assid;
+  String postedBy;
+  String msg;
+  String? desc;
+  String? duedate;
+  String? priority;
+  String issubtask;
+  String isfile;
+  String timing;
+
+  AssTask({required this.pid,this.assid,required this.postedBy ,required this.msg, this.desc, this.duedate, this.priority, required this.issubtask, required this.isfile, required this.timing});
+
+  factory AssTask.fromJson(Map<String, dynamic> json) {
+    return AssTask(
+      pid: json['pid'],
+      assid: json['Assid'],
+      postedBy: json['postedBy'],
+      msg: json['Msg'],
+      desc: json['Desc'],
+      duedate: json['Duedate'],
+      priority: json['Priority'],
+      issubtask: json['issubtask'],
+      isfile: json['isfile'],
+      timing: json['timing'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['pid'] = this.pid;
+    data['Assid'] = this.assid;
+    data['postedBy'] = this.postedBy;
+    data['Msg'] = this.msg;
+    data['Desc'] = this.desc;
+    data['Duedate'] = this.duedate;
+    data['Priority'] = this.priority;
+    data['issubtask']= this.issubtask;
+    data['isfile']=this.isfile;
+    data['timing'] = this.timing;
+    return data;
+  }
+}
+class Asssubtask {
+  int assid;
+  String subtask;
+  String isCompleted;
+
+  Asssubtask({
+    required this.assid,
+    required this.subtask,
+    required this.isCompleted,
+  });
+
+  factory Asssubtask.fromJson(Map<String, dynamic> json) {
+    return Asssubtask(
+      assid: json['Assid'],
+      subtask: json['subtask'],
+      isCompleted: json['isCompleted'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['Assid'] = this.assid;
+    data['subtask'] = this.subtask;
+    data['isCompleted'] = this.isCompleted;
+    return data;
+  }
+}
+
+class Assmem {
+  int assid;
+  String uid;
+
+  Assmem({required this.assid, required this.uid});
+
+  factory Assmem.fromJson(Map<String, dynamic> json) {
+    return Assmem(
+      assid: json['Assid'],
+      uid: json['Uid'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['Assid'] = this.assid;
+    data['Uid'] = this.uid;
+    return data;
+  }
 }

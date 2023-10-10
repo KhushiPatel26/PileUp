@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,7 +43,8 @@ Color _getRandomColor() {
 class _projvState extends State<projv> {
   final ScrollController _scrollController = ScrollController();
   List<String> tabs=["Message Threads", "Tasks","Files"];
-  List ontab=[threads(),activities(),files()];
+
+  late List ontab;
   int selectedIndex = 0;
   late QuillEditorController controller;
   // String proj_desc="'PileUp' is a handy productive app that helps user to manage their tasks, projects, and contacts. "
@@ -60,6 +62,7 @@ class _projvState extends State<projv> {
     // final User? user = _auth.currentUser;
     // uid = user?.uid;
     // print("uid:" + uid!);
+    ontab=[threads(projId: widget.pid.projectId!),activities(projId: widget.pid.projectId!),files(projId: widget.pid.projectId!)];
     proj_desc=widget.pid.description;
     controller = QuillEditorController();
     controller.onTextChanged((text) {
@@ -67,6 +70,7 @@ class _projvState extends State<projv> {
     });
     //tabs.addAll(widget.pid.tags.split(','));
     _fetchMem();
+    _fetchData();
   }
   ApiService3 api = ApiService3();
 List<ProjMem> pmm=[];
@@ -97,9 +101,10 @@ List<Comp_Mem> cmm=[];
   Future<void> _fetchData() async {
     final data2 = await api.readRecords('Comp_Mem');
     setState(() {
-      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.uid==uid).toList();
-      compCode=compmem[0].companyCode;
-      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compCode).toList();
+      // compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.uid==uid).toList();
+      // compCode=compmem[0].companyCode;
+      // print("cc: $compCode");
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compcode).toList();
     });
     print("Comp_Mem:");
     print(compmem);
@@ -108,8 +113,8 @@ List<Comp_Mem> cmm=[];
     setState(() {
       for(int i=0;i<compmem.length;i++){
         users = data3.map((json) => Userstb.fromJson(json)).where((element) => element.uid==compmem[i].uid).toList();
-        mem.putIfAbsent(users[0].name, () => _getRandomColor());
-        name_id.putIfAbsent(users[0].name, () => users[0].uid!);
+        mem.putIfAbsent(users[i].name, () => _getRandomColor());
+        name_id.putIfAbsent(users[i].name, () => users[i].uid!);
       }
     });
     print("Users:");
@@ -669,7 +674,7 @@ List<Comp_Mem> cmm=[];
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => assigntask()));
+                                      builder: (context) => assigntask(projid:widget.pid.projectId!)));
                             },
                             child: Container(
                               // height: 200,
@@ -698,7 +703,7 @@ List<Comp_Mem> cmm=[];
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => addmsg()));
+                                      builder: (context) => addmsg(projId: widget.pid.projectId!)));
                             },
                             child: Container(
                               // height: 200,

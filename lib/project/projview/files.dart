@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class files extends StatefulWidget {
-  const files({Key? key}) : super(key: key);
+  final int projId;
+  const files({Key? key, required this.projId}) : super(key: key);
 
   @override
   State<files> createState() => _filesState();

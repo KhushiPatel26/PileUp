@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:math';
 import 'package:pup/socialmedia.dart';
 
+import '../DB/ApiService3.dart';
 import '../DB/models.dart';
 
 class contview extends StatefulWidget {
@@ -16,12 +17,20 @@ final PSContact contact;
 
 class _contviewState extends State<contview> {
   
-  Future<void> _delete() async {
-    
-
-    ScaffoldMessenger.of(context).showSnackBar (const SnackBar(
-        content: Text('contact deleted')));
+  // Future<void> _delete() async {
+  //   ScaffoldMessenger.of(context).showSnackBar (const SnackBar(
+  //       content: Text('contact deleted')));
+  // }
+  ApiService3 api = ApiService3();
+  List<PSContact> co=[];
+  Future<void> _fetchData() async {
+    final data = await api.readRecords('example3');
+    setState(() {
+      co = data.map((json) => PSContact.fromJson(json)).toList();
+    });
   }
+
+
   final _random = Random();
   @override
   Widget build(BuildContext context) {
@@ -31,7 +40,7 @@ class _contviewState extends State<contview> {
         backgroundColor: Colors.white,
         actions: [
           IconButton(onPressed: (){
-            _delete();
+            //_delete();
             Navigator.pop(context);
           }, icon: Icon(Icons.delete),),
         ],
@@ -60,18 +69,21 @@ class _contviewState extends State<contview> {
                   Text(widget.contact.fname.split(' ')[0]+' ', style: TextStyle(
                     fontSize: 30, color: Colors.black
                   ),),
-                  Text(' '+widget.contact.fname.split(' ')[1], style: TextStyle(
-                    fontSize: 30, color: Colors.black
-                  ),),
+
                 ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.all(2.0),
               child: Text(widget.contact.phnnum, style: TextStyle(
                   color: Colors.grey
               ),),
             ),
+            Text('${widget.contact.category} | ${widget.contact.label}', style: TextStyle(
+                color: Colors.grey
+            ),),
+
             // Padding(
             //   padding: const EdgeInsets.all(2.0),
             //   child: Text(widget.contact.phones.toString(), style: TextStyle(

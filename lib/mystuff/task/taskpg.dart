@@ -404,107 +404,107 @@ List<ToDoTask> l=[];
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                right: 20, left: 20, top: 15),
-                            child: Container(
-                              width: 370,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                  color: Color(0xFFDEECEC),
-                                  borderRadius: BorderRadius.circular(15)),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                          left: 18.0, top: 10, bottom: 12),
-                                      child: Text(
-                                        "Your today's task\n"
-                                        "almost done!",
-                                        softWrap: true,
-                                        style: TextStyle(
-                                            color: Colors.black,
-                                            fontFamily: 'Readex Pro',
-                                            fontWeight: FontWeight.w300,
-                                            //fontWeight: FontWeight.bold,
-                                            fontSize: 17),
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          // Navigator.push(
-                                          //   context,
-                                          //   MaterialPageRoute(builder: (context) => homepg()),
-                                          // );
-                                          // NotificationAppLaunchDetails? notificationAppLaunchDetails = null;
-                                          //  HomePage homePageInstance = HomePage(notificationAppLaunchDetails);
-                                        },
-                                        child: Text(
-                                          "View Tasks",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w300,
-                                              fontSize: 12),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          //primary: Colors.black,
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(30)),
-                                          elevation: 4.0,
-                                        )),
-                                  ]),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: CircularPercentIndicator(
-                                      radius: 35.0,
-                                      lineWidth: 8.0,
-                                      percent: (32.toDouble()) / 100,
-                                      center: Text("32%",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                          )),
-                                      progressColor: Colors.black,
-                                      backgroundWidth: 8,
-                                      backgroundColor: Colors
-                                          .black12, //Color(0xFFF9EB95),//Colors.yellow.shade200,
-                                      //fillColor: Colors.yellow.shade400,
-                                      animation: true,
-                                      // animationDuration: ,
-                                      // header: Padding(
-                                      //   padding: const EdgeInsets.all(12.0),
-                                      //   child: Text("${(_count.toDouble())}"),
-                                      // ),
-                                      // footer: Padding(
-                                      //   padding: const EdgeInsets.all(12.0),
-                                      //   child: Text("${(_count.toDouble())}"),
-                                      // ),
-                                      // linearGradient: LinearGradient(
-                                      //   colors: [Colors.white,Colors.black],
-                                      // ),
-                                      circularStrokeCap:
-                                          CircularStrokeCap.round,
-                                      startAngle: 0.0,
-                                      // animateFromLastPercent: true,
-                                      //   addAutomaticKeepAlive: true,
-                                      // arcType: ArcType.HALF,
-                                      // arcBackgroundColor: Colors.green.shade200,
-                                      // reverse: true,
-                                      //maskFilter: MaskFilter.blur(BlurStyle.normal, 5.0),
-                                      // curve: Curves.linear,
-                                      // restartAnimation: true,
-                                      // onAnimationEnd: (){print('progress...');},
-                                      // widgetIndicator: Text('V'),
-                                      // rotateLinearGradient: true,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //       right: 20, left: 20, top: 15),
+                          //   child: Container(
+                          //     width: 370,
+                          //     height: 120,
+                          //     decoration: BoxDecoration(
+                          //         color: Color(0xFFDEECEC),
+                          //         borderRadius: BorderRadius.circular(15)),
+                          //     child: Row(
+                          //       mainAxisAlignment:
+                          //           MainAxisAlignment.spaceAround,
+                          //       children: [
+                          //         Column(children: [
+                          //           Padding(
+                          //             padding: const EdgeInsets.only(
+                          //                 left: 18.0, top: 10, bottom: 12),
+                          //             child: Text(
+                          //               "Your today's task\n"
+                          //               "almost done!",
+                          //               softWrap: true,
+                          //               style: TextStyle(
+                          //                   color: Colors.black,
+                          //                   fontFamily: 'Readex Pro',
+                          //                   fontWeight: FontWeight.w300,
+                          //                   //fontWeight: FontWeight.bold,
+                          //                   fontSize: 17),
+                          //             ),
+                          //           ),
+                          //           ElevatedButton(
+                          //               onPressed: () {
+                          //                 // Navigator.push(
+                          //                 //   context,
+                          //                 //   MaterialPageRoute(builder: (context) => homepg()),
+                          //                 // );
+                          //                 // NotificationAppLaunchDetails? notificationAppLaunchDetails = null;
+                          //                 //  HomePage homePageInstance = HomePage(notificationAppLaunchDetails);
+                          //               },
+                          //               child: Text(
+                          //                 "View Tasks",
+                          //                 style: TextStyle(
+                          //                     color: Colors.white,
+                          //                     fontWeight: FontWeight.w300,
+                          //                     fontSize: 12),
+                          //               ),
+                          //               style: ElevatedButton.styleFrom(
+                          //                 //primary: Colors.black,
+                          //                 shape: RoundedRectangleBorder(
+                          //                     borderRadius:
+                          //                         BorderRadius.circular(30)),
+                          //                 elevation: 4.0,
+                          //               )),
+                          //         ]),
+                          //         Padding(
+                          //           padding: const EdgeInsets.all(8.0),
+                          //           child: CircularPercentIndicator(
+                          //             radius: 35.0,
+                          //             lineWidth: 8.0,
+                          //             percent: (32.toDouble()) / 100,
+                          //             center: Text("32%",
+                          //                 style: TextStyle(
+                          //                   color: Colors.black,
+                          //                 )),
+                          //             progressColor: Colors.black,
+                          //             backgroundWidth: 8,
+                          //             backgroundColor: Colors
+                          //                 .black12, //Color(0xFFF9EB95),//Colors.yellow.shade200,
+                          //             //fillColor: Colors.yellow.shade400,
+                          //             animation: true,
+                          //             // animationDuration: ,
+                          //             // header: Padding(
+                          //             //   padding: const EdgeInsets.all(12.0),
+                          //             //   child: Text("${(_count.toDouble())}"),
+                          //             // ),
+                          //             // footer: Padding(
+                          //             //   padding: const EdgeInsets.all(12.0),
+                          //             //   child: Text("${(_count.toDouble())}"),
+                          //             // ),
+                          //             // linearGradient: LinearGradient(
+                          //             //   colors: [Colors.white,Colors.black],
+                          //             // ),
+                          //             circularStrokeCap:
+                          //                 CircularStrokeCap.round,
+                          //             startAngle: 0.0,
+                          //             // animateFromLastPercent: true,
+                          //             //   addAutomaticKeepAlive: true,
+                          //             // arcType: ArcType.HALF,
+                          //             // arcBackgroundColor: Colors.green.shade200,
+                          //             // reverse: true,
+                          //             //maskFilter: MaskFilter.blur(BlurStyle.normal, 5.0),
+                          //             // curve: Curves.linear,
+                          //             // restartAnimation: true,
+                          //             // onAnimationEnd: (){print('progress...');},
+                          //             // widgetIndicator: Text('V'),
+                          //             // rotateLinearGradient: true,
+                          //           ),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Padding(
@@ -752,7 +752,7 @@ List<ToDoTask> l=[];
                                         l[i].taskDesc,
                                         l[i].createDate,
                                         l[i].precent,
-                                        l[i].taskId,
+                                        l[i].taskId!,
                                         l[i].priority),
                                   ),
 

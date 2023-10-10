@@ -1,4 +1,8 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:html/parser.dart';
 import 'package:intl/intl.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:omni_datetime_picker/omni_datetime_picker.dart';
@@ -6,14 +10,32 @@ import 'package:pup/colors.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
+import '../../DB/ApiService3.dart';
+import '../../DB/models.dart';
+
 class assigntask extends StatefulWidget {
-  const assigntask({Key? key}) : super(key: key);
+  final int projid;
+  const assigntask({Key? key, required this.projid}) : super(key: key);
 
   @override
   State<assigntask> createState() => _assigntaskState();
 }
 
 class _assigntaskState extends State<assigntask> {
+
+  @override
+  void dispose() {
+    /// please do not forget to dispose the controller
+    controller.dispose();
+    mem.clear();
+    subtasks.clear();
+    checkboxListTiles.clear();
+    _subtaskController.clear();
+    _titleController.clear();
+    selectedMembers.clear();
+    super.dispose();
+  }
+
   late QuillEditorController controller;
   TextEditingController tasktopic = TextEditingController();
   TextEditingController taskdesc = TextEditingController();
@@ -22,7 +44,7 @@ class _assigntaskState extends State<assigntask> {
   String priority = "Medium";
   String status = "In Progress";
   List<String> subtasks = [];
-
+  TextEditingController _subtaskController = TextEditingController();
   Color _backgroundColor = Color(0xFF212121);
   final _toolbarColor = Colors.black; //grey.shade200;
   //final _backgroundColor = Colors.black.withOpacity(0.5);
@@ -68,6 +90,8 @@ class _assigntaskState extends State<assigntask> {
   bool _hasFocus = false;
   bool maintoolbox = true;
   List<ToolBarStyle> toolList = [];
+  List<String> files=[];
+  String desc='';
   @override
   void initState() {
     controller = QuillEditorController();
@@ -78,14 +102,132 @@ class _assigntaskState extends State<assigntask> {
     //   debugPrint('Editor Loaded :)');
     // });
     super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
+    _fetchData();
+  }
+  ApiService3 api = ApiService3();
+
+  List<Project> proj=[];
+  List<Comp_Mem> compmem=[];
+  List<Userstb> users=[];
+  List<AssTask> asstask=[];
+  String compCode="";
+  Future<void> _fetchData() async {
+    final data2 = await api.readRecords('Comp_Mem');
+    final projdata = await api.readRecords('Project');
+    setState(() {
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.uid==uid).toList();
+      compCode=compmem[0].companyCode;
+      compmem = data2.map((json) => Comp_Mem.fromJson(json)).where((element) => element.companyCode==compCode).toList();
+      proj = projdata.map((json) => Project.fromJson(json)).where((element) => element.projectId==widget.projid).toList();
+    });
+    print("Comp_Mem:");
+    print(compmem);
+
+    final data3 = await api.readRecords('Users');
+    setState(() {
+      for(int i=0;i<compmem.length;i++){
+        users = data3.map((json) => Userstb.fromJson(json)).where((element) => element.uid==compmem[i].uid).toList();
+        mem.putIfAbsent(users[0].name, () => _getRandomColor());
+        name_id.putIfAbsent(users[0].name, () => users[0].uid!);
+      }
+    });
+    print("Users:");
+    print(users);
   }
 
-  @override
-  void dispose() {
-    /// please do not forget to dispose the controller
-    controller.dispose();
-    super.dispose();
+
+  Future<void> _insert() async {
+    final record = AssTask(
+      pid: widget.projid,
+        postedBy: uid.toString(),
+        msg: tasktopic.text,
+        issubtask: subtasks.length==0?'false':'true',
+        isfile: files.length==0?'false':'true',
+        desc:desc,
+        duedate:duedate.toString(),
+        priority:priority,
+      timing: DateTime.now().toString()
+    );
+    await api.createRecord('AssTask', record.toJson());
+    print("Successfully row added in Assign Task");
+    _fetchAssT();
   }
+  int? taskId;
+  List<ToDoTask> todo=[];
+  Future<void> _fetchAssT() async{
+    print("in");
+    final data = await api.readRecords('Asstask');
+    final datatid = await api.readRecords('ToDoTasks');
+    setState(() {
+      asstask = data.map((json) => AssTask.fromJson(json)).where((element) => element.pid==widget.projid && element.msg==tasktopic.text).toList();
+      todo = datatid.map((json) => ToDoTask.fromJson(json)).where((element) => element.usId==uid).toList();//[0].taskId!;
+      taskId=todo[0].taskId;
+    });
+    print("Ass Task:");
+    print(asstask);
+    print(taskId);
+    _insertAssTData();
+  }
+
+  Future<void> _insertAssTData() async{
+
+    //await api.createRecord('Assmem', record2.toJson());
+    for(int i=0;i<selectedMembers.length;i++) {
+      var record2= Assmem(
+          assid: asstask[0].assid!,
+          uid: name_id[selectedMembers[i]]!
+      );
+      await api.createRecord('Assmem', record2.toJson());
+      print("Successfully row added in Assign Members");
+      //--- insert in task table--------
+      var task_data = ToDoTask(
+        usId: name_id[selectedMembers[i]]!,
+        taskName: tasktopic.text,
+        taskDesc: desc,
+        precent: 0.0,
+        startDate: DateTime.now().toString(),
+        dueDate: duedate.toString(),
+        priority: priority,
+        remind: 'yes',//doremind ? 'never' : _remind.toString(),
+        status: 'in progress',
+        category: 'Work',
+        labels: proj[0].name,
+        subtask: subtasks.length,
+        createDate: DateTime.now().toString(),
+    );
+      await api.createRecord('ToDoTasks', task_data.toJson());
+      print("Successfully row added in ToDoTasks");
+    }
+    for(int i=0;i<subtasks.length;i++) {
+      var record2= Asssubtask(
+          assid: asstask[0].assid!,
+          subtask: subtasks[i],
+          isCompleted: 'false'
+      );
+      await api.createRecord('Asssubtask', record2.toJson());
+      print("Successfully row added in Asssubtask");
+
+        var subtaskdata= Subtask(
+            taskId: taskId!,
+            subtaskName: subtasks[i],
+            priority: priority,
+            isCompleted: 'false'
+        );
+        await api.createRecord('Subtasks', subtaskdata.toJson());
+        print("Successfully row added in Subtasks");
+
+
+    }
+  }
+
+
+
+  List<Widget> checkboxListTiles = [];
+  TextEditingController _titleController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -111,12 +253,15 @@ class _assigntaskState extends State<assigntask> {
               padding: const EdgeInsets.all(8),
               child: ElevatedButton(
                 onPressed: () {
+                  descText();
+                  _insert();
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       backgroundColor: Colors.white,
                       content: Text(
-                        'Message Posted',
+                        'Task Assigned',
                         style: TextStyle(color: Colors.black),
                       )));
+                  Navigator.pop(context);
                 },
                 child: Padding(
                   padding: const EdgeInsets.only(
@@ -165,7 +310,23 @@ class _assigntaskState extends State<assigntask> {
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(color: Colors.black, width: 0.7)),
                       child: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            showModalBottomSheet(
+                              isScrollControlled: true,
+                              enableDrag: true,
+                              context: context,
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadiusDirectional.only(
+                                  topEnd: Radius.circular(25),
+                                  topStart: Radius.circular(25),
+                                ),
+                              ),
+                              builder: (BuildContext context) {
+                                return SingleChildScrollView(child: MemberListBottomSheet());
+                              },
+                            );
+                          },
                           icon: Icon(
                             Icons.person,
                             color: Colors.black,
@@ -393,7 +554,7 @@ class _assigntaskState extends State<assigntask> {
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -406,21 +567,30 @@ class _assigntaskState extends State<assigntask> {
                         ),
                         Text(duedate != null?"${DateFormat('dd/MM/yyyy HH:mm').format(duedate!)}":"Select Due Date -",
                             style:
-                                TextStyle(color: Colors.black.withOpacity(0.5)))
+                            TextStyle(color: Colors.black.withOpacity(0.5))),
+                        Visibility(
+                          visible:duedate!=null?duedate!.isBefore(DateTime.now()):false ,
+                          child: Text(
+                            "Set future date timing!",
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.red.withOpacity(0.6),
+                                fontWeight: FontWeight.w400),
+                          ),
+                        )
                       ],
                     ),
                     Container(
                         decoration: BoxDecoration(
                             color: Colors.transparent,
-                            border: Border.all(color: Colors.black, width: 0.7),
+                            border: Border.all(color: duedate!=null?(duedate!.isBefore(DateTime.now())?Colors.red:Colors.black):Colors.black, width: duedate!=null?(duedate!.isBefore(DateTime.now())?0.7:0.2):0.2),
                             borderRadius: BorderRadius.circular(30)),
                         child: IconButton(
                             onPressed: () async {
                               DateTime? dateTime = await showOmniDateTimePicker(
                                 context: context,
                                 initialDate: DateTime.now(),
-                                firstDate: DateTime(1600)
-                                    .subtract(const Duration(days: 3652)),
+                                firstDate: DateTime.now(),
                                 lastDate: DateTime.now().add(
                                   const Duration(days: 3652),
                                 ),
@@ -430,7 +600,7 @@ class _assigntaskState extends State<assigntask> {
                                 secondsInterval: 1,
                                 isForce2Digits: true,
                                 borderRadius:
-                                    const BorderRadius.all(Radius.circular(16)),
+                                const BorderRadius.all(Radius.circular(16)),
                                 constraints: const BoxConstraints(
                                   maxWidth: 350,
                                   maxHeight: 650,
@@ -448,7 +618,7 @@ class _assigntaskState extends State<assigntask> {
                                   );
                                 },
                                 transitionDuration:
-                                    const Duration(milliseconds: 200),
+                                const Duration(milliseconds: 200),
                                 barrierDismissible: true,
                                 selectableDayPredicate: (dateTime) {
                                   // Disable 25th Feb 2023
@@ -459,18 +629,19 @@ class _assigntaskState extends State<assigntask> {
                                   }
                                 },
                               );
-setState(() {
-  duedate=dateTime;
-});
+                              setState(() {
+                                duedate=dateTime;
+                              });
                               print("dateTime: $dateTime");
                             },
                             icon: Icon(
                               LineIcons.calendarAlt,
-                              color: Colors.black,
+                              color: duedate!=null?(duedate!.isBefore(DateTime.now())?Colors.red:Colors.black):Colors.black,
                             )))
                   ],
                 ),
               ),
+
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
                 child: Row(
@@ -484,7 +655,7 @@ setState(() {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left:20.0),
+                      padding: const EdgeInsets.only(left: 20.0),
                       child: ToggleSwitch(
                         minWidth: 70.0,
                         minHeight: 30.0,
@@ -503,7 +674,9 @@ setState(() {
                           // setState(() {
                           //   priority= index==0?'High':(index==1?'Medium':'Low');
                           // });
-                          priority= index==0?'High':(index==1?'Medium':'Low');
+                          priority = index == 0
+                              ? 'High'
+                              : (index == 1 ? 'Medium' : 'Low');
                           print('switched to: $priority');
                         },
                       ),
@@ -516,58 +689,122 @@ setState(() {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
-                    child: Text("Status:",style: TextStyle(color: Colors.black)),
+                    child:
+                        Text("Status:", style: TextStyle(color: Colors.black)),
                   ),
                   Container(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 4),
                       child: Row(
                         children: [
-                          Icon(Icons.circle,color: Colors.green.withOpacity(0.6),size: 10,),
-                          Text("   In Progress",style: TextStyle(color: Colors.green.withOpacity(0.6))),
+                          Icon(
+                            Icons.circle,
+                            color: Colors.green.withOpacity(0.6),
+                            size: 10,
+                          ),
+                          Text("   In Progress",
+                              style: TextStyle(
+                                  color: Colors.green.withOpacity(0.6))),
                         ],
                       ),
                     ),
                     decoration: BoxDecoration(
-                      color: green.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.green.withOpacity(0.6))
-                    ),
+                        color: green.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                        border:
+                            Border.all(color: Colors.green.withOpacity(0.6))),
                   )
                 ],
               ),
               Row(
                 children: [
-                  IconButton(onPressed: (){}, icon: Icon(Icons.add_circle_outlined,color: Colors.black,)),
-                  Text("Add Subtask",style: TextStyle(color: Colors.black))
+                  IconButton(
+                      onPressed: () {
+                        _addSubtask();
+                      },
+                      icon: Icon(
+                        Icons.add_circle_outlined,
+                        color: Colors.black,
+                      )),
+                  Text("Add Subtask", style: TextStyle(color: Colors.black))
                 ],
               ),
-              //for(int i=0;i<subtasks.length;i++)
+              for(int i=0;i<subtasks.length;i++)
+        Container(
+      child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Checkbox(
+                value: false,
+                onChanged: (bool? value) {},
+                side: BorderSide(color: Colors.black), // Reduce the checkbox size
+                shape: CircleBorder(),
+              ),
+              SizedBox(width: 8),
               Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: false,
-                          onChanged: (bool? value) { },
-                          side: BorderSide(
-                              color: Colors
-                                  .black), // Reduce the checkbox size
-                          shape: CircleBorder(),
-                        ),
-                        Text("Subtask 1",style: TextStyle(color: Colors.black)),
-                      ],
-                    ),
-                    IconButton(onPressed: (){}, icon: Icon(Icons.close,color: Colors.black,size: 18,))
-                  ],
+                width: 200,
+                child: Text(
+                  subtasks[i],style: TextStyle(color: Colors.black),
                 ),
               ),
+            ],
+          ),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                subtasks.remove(subtasks[i]);
+              });
+            },
+            icon: Icon(
+              Icons.close,
+              color: Colors.black,
+              size: 18,
+            ),
+          )
+        ],
+      ),
+    ),
+
+
+              // Container(
+              //   child: Row(
+              //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //     children: [
+              //       Row(
+              //         children: [
+              //           Checkbox(
+              //             value: false,
+              //             onChanged: (bool? value) {},
+              //             side: BorderSide(
+              //                 color: Colors.black), // Reduce the checkbox size
+              //             shape: CircleBorder(),
+              //           ),
+              //           Text("Subtask 1",
+              //               style: TextStyle(color: Colors.black)),
+              //         ],
+              //       ),
+              //       IconButton(
+              //           onPressed: () {},
+              //           icon: Icon(
+              //             Icons.close,
+              //             color: Colors.black,
+              //             size: 18,
+              //           ))
+              //     ],
+              //   ),
+              // ),
               Row(
                 children: [
-                  IconButton(onPressed: (){}, icon: Icon(Icons.add_circle_outlined,color: Colors.black,)),
-                  Text("Attach Files",style: TextStyle(color: Colors.black))
+                  IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.add_circle_outlined,
+                        color: Colors.black,
+                      )),
+                  Text("Attach Files", style: TextStyle(color: Colors.black))
                 ],
               ),
             ],
@@ -578,17 +815,17 @@ setState(() {
   }
 
 
-
   chipList() {
     return Wrap(
       spacing: 6.0,
       runSpacing: 4.0,
       children: <Widget>[
-        _buildChip('Gamer', pink),
-        _buildChip('Hacker', blue),
-        _buildChip('Developer', brown),
-        _buildChip('Racer', orange),
-        _buildChip('Traveller', green),
+        for(int i=0;i<selectedMembers.length;i++)
+          _buildChip(selectedMembers[i], mem[selectedMembers[i]]!),
+        // _buildChip('Hacker', blue),
+        // _buildChip('Developer', brown),
+        // _buildChip('Racer', orange),
+        // _buildChip('Traveller', green),
       ],
     );
   }
@@ -605,7 +842,8 @@ setState(() {
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.w400),
       ),
       onDeleted: () {
-        // Do something when the chip is deleted
+        print("delete");
+        selectedMembers.remove(label);// Do something when the chip is deleted
       },
       side: BorderSide(color: color),
       backgroundColor: color.withOpacity(0.9),
@@ -615,10 +853,254 @@ setState(() {
     );
   }
 
+
+  void _addSubtask()async {
+    await showDialog<void>(
+        context: context,
+        builder: (context) => Container(
+          height: 600,
+          width: 720,
+          child: AlertDialog(
+            backgroundColor: Colors.white,
+            content: Stack(
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                Positioned(
+                  left: -40,
+                  top: -40,
+                  child: InkResponse(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const CircleAvatar(
+                      backgroundColor:
+                      Colors.black,
+                      child: Icon(Icons.close),
+                    ),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
+                      padding:
+                      const EdgeInsets.only(
+                          top: 10.0,
+                          left: 20,
+                          bottom: 10),
+                      child: Text(
+                        'Add Subtask',
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          color:
+                          Color(0xFF101213),
+                          fontSize: 25,
+                          fontWeight:
+                          FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+
+                    Padding(
+                      padding:
+                      EdgeInsetsDirectional
+                          .fromSTEB(
+                          10, 0, 10, 16),
+                      child: Container(
+                        width: 370,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                          BorderRadius
+                              .circular(100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey
+                                  .withOpacity(
+                                  0.3),
+                              blurRadius: 15,
+                              spreadRadius: 1,
+                              offset:
+                              Offset(0, 7),
+                            ),
+                          ],
+                        ),
+                        child: TextFormField(
+                            controller:
+                            _subtaskController,
+                            autofocus: true,
+                            autofillHints: [
+                              AutofillHints.email
+                            ],
+                            obscureText: false,
+                            decoration:
+                            InputDecoration(
+                              labelText:
+                              'Add Subtask',
+                              labelStyle:
+                              TextStyle(
+                                fontFamily:
+                                'Plus Jakarta Sans',
+                                color: Color(
+                                    0xFF57636C),
+                                fontSize: 14,
+                                fontWeight:
+                                FontWeight
+                                    .w300,
+                              ),
+                              enabledBorder:
+                              OutlineInputBorder(
+                                borderSide:
+                                BorderSide(
+                                  color: Color(
+                                      0xFFF1F4F8),
+                                  width: 2,
+                                ),
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    50),
+                              ),
+                              focusedBorder:
+                              OutlineInputBorder(
+                                borderSide:
+                                BorderSide(
+                                  color: Colors
+                                      .black,
+                                  width: 1,
+                                ),
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    50),
+                              ),
+                              errorBorder:
+                              OutlineInputBorder(
+                                borderSide:
+                                BorderSide(
+                                  color: Color(
+                                      0xFFFF5963),
+                                  width: 2,
+                                ),
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    50),
+                              ),
+                              focusedErrorBorder:
+                              OutlineInputBorder(
+                                borderSide:
+                                BorderSide(
+                                  color: Color(
+                                      0xFFFF5963),
+                                  width: 2,
+                                ),
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    50),
+                              ),
+                              filled: true,
+                              fillColor: Color(
+                                  0xFFF1F4F8),
+                            ),
+                            style: TextStyle(
+                              fontFamily:
+                              'Plus Jakarta Sans',
+                              color: Color(
+                                  0xFF101213),
+                              fontSize: 14,
+                              fontWeight:
+                              FontWeight.w400,
+                            ),
+                            keyboardType:
+                            TextInputType
+                                .text),
+                      ),
+                    ),
+                    Padding(
+                        padding:
+                        const EdgeInsets.all(
+                            8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(
+                                context)
+                                .showSnackBar(
+                                SnackBar(
+                                    backgroundColor:
+                                    Colors
+                                        .white,
+                                    content:
+                                    Text(
+                                      'Subtask Added',
+                                      style: TextStyle(
+                                          color:
+                                          Colors.black),
+                                    )));
+
+                            Navigator.pop(context);
+                          },
+                          child: Padding(
+                            padding:
+                            const EdgeInsets
+                                .only(
+                                top: 5.0,
+                                bottom: 5.0,
+                                left: 3.0,
+                                right: 3.0),
+                            child: Text(
+                              "Add Subtask",
+                              style: TextStyle(
+                                  color: Colors
+                                      .white,
+                                  fontWeight:
+                                  FontWeight
+                                      .w400,
+                                  fontSize: 12),
+                            ),
+                          ),
+                          style: ElevatedButton
+                              .styleFrom(
+                            backgroundColor:
+                            Colors.black,
+                            //primary: Colors.black,
+                            shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color: Colors
+                                        .black),
+                                borderRadius:
+                                BorderRadius
+                                    .circular(
+                                    30)),
+                            elevation: 0.0,
+                          ),
+                        )),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ));
+
+    setState(() {
+      subtasks.add(_subtaskController.text);
+      _subtaskController.clear();
+    });
+  }
   ///[getHtmlText] to get the html text from editor
   void getHtmlText() async {
     String? htmlText = await controller.getText();
     debugPrint(htmlText);
+  }
+
+  void descText() async {
+    //projdesc
+    String htmlString = await controller.getText();
+    final document = parse(htmlString);
+    String parsedString = parse(document.body!.text).documentElement!.text;
+    desc = parsedString;
+    //debugPrint(htmlText);
   }
 
   ///[setHtmlText] to set the html text to editor
@@ -720,7 +1202,7 @@ class textf extends StatelessWidget {
     );
   }
 }
-
+String? uid;
 /*
 ElevatedButton(
                 onPressed: () async {
@@ -831,3 +1313,98 @@ ElevatedButton(
                 ),
               ),
 * */
+Random _random = Random();
+Color _getRandomColor() {
+  int r = _random.nextInt(250);
+  int g = _random.nextInt(250);
+  int b = _random.nextInt(250);
+  return Color.fromRGBO(r, g, b, 1.0);
+}
+Map<String, Color> mem = {};
+Map<String, String> name_id = {};
+List<String> selectedMembers = [];
+
+class MemberListBottomSheet extends StatefulWidget {
+  @override
+  _MemberListBottomSheetState createState() => _MemberListBottomSheetState();
+}
+
+class _MemberListBottomSheetState extends State<MemberListBottomSheet> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 400,
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Add Members",style: TextStyle(color: Colors.black,fontWeight: FontWeight.w500, fontSize: 20)),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [
+                if(selectedMembers.length==0)
+                  CircleAvatar(
+                    child: Icon(Icons.person_add_alt_sharp),
+                    backgroundColor: Colors.transparent,
+                  ),
+
+                if(selectedMembers.length>0)
+                  for(int i=0;i<selectedMembers.length;i++)
+                    Padding(
+                      padding: EdgeInsets.only(left: i.toDouble()*10.0),
+                      child: CircleAvatar(
+                        backgroundColor: mem[selectedMembers[i]],
+                        child: Text(selectedMembers[i][0]),
+                      ),
+                    )
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: mem.length,
+              itemBuilder: (context, index) {
+                return name_id[mem.keys.elementAt(index)]!=uid? ListTile(
+                  leading: CircleAvatar(child: Text(mem.keys.elementAt(index)[0]),
+                    backgroundColor: mem.values.elementAt(index),
+                  ),
+                  title: Text(mem.keys.elementAt(index),
+                    style: TextStyle(color: Colors.black),
+                  ),
+                  trailing: Checkbox(
+                    side: BorderSide(color: Colors.black),
+                    shape: CircleBorder(),
+                    activeColor: Colors.black,
+                    value: selectedMembers.contains(mem.keys.elementAt(index)),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedMembers.add(mem.keys.elementAt(index));
+                        } else {
+                          selectedMembers.remove(mem.keys.elementAt(index));
+                        }
+                      });
+                    },
+                  ),
+                ) : Container();
+              },
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Do something with the selected members
+              setState(() {
+                selectedMembers=selectedMembers;
+              });
+              print('Selected Members: $selectedMembers');
+              Navigator.pop(context);
+            },
+            child: Text('Add Members',style: TextStyle(color: Colors.white),),
+          ),
+        ],
+      ),
+    );
+  }
+}

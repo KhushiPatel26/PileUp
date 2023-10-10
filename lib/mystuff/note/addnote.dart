@@ -5,7 +5,7 @@ import 'package:pup/colors.dart';
 import 'package:pup/mystuff/note/sketch.dart';
 import 'package:pup/mystuff/note/viewnote.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
-
+import 'package:share/share.dart';
 import '../../DB/ApiService3.dart';
 import 'notes.dart';
 
@@ -161,14 +161,17 @@ class _addnoteState extends State<addnote> {
     print("notes inserted");
   }
 
-  // Future<void> _insertnbpg() async {
-  //   final record = NotebookPage(
-  //       nbid: null,
-  //       pgcreate: DateTime.now().toString();
-  //   );
-  //   await api.createRecord('notebookpage', record.toJson());
-  //   print("notebook pg inserted");
-  // }
+  Future<void> _insertnbpg() async {
+    final record = NotebookPage(
+        nbid: widget.nbid,
+        pgbgcolor: _backgroundColor.toString(),
+        pgtitle: title.text,
+        pgcontent: content,
+        pgcreate: DateTime.now().toString()
+    );
+    await api.createRecord('notebookpage', record.toJson());
+    print("notebook pg inserted");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +183,14 @@ class _addnoteState extends State<addnote> {
           onPressed: () async {
 
             content=await controller.getText();
-            _insert();
+            print(widget.fromnb);
+            if(widget.fromnb){
+              _insertnbpg();
+            }
+            else{
+              _insert();
+            }
+
             SnackBar(content: Text('note saved'));
             Navigator.pop(
               context,
@@ -475,7 +485,9 @@ class _addnoteState extends State<addnote> {
                               style: TextStyle(color: Colors.white),
                             ),
                             onTap: () {
-                              Navigator.pop(context);
+                              shareText();
+                              //_onShareData(context);
+                              //Navigator.pop(context);
                             },
                           ),
                           ListTile(
@@ -1103,6 +1115,21 @@ class _addnoteState extends State<addnote> {
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  void shareText() async {
+    content=await controller.getText();
+    Share.share('${title.text} \n ${content}');
+  }
+
+  // _onShareData(BuildContext context) async {
+  //
+  //   final RenderObject? box = context.findRenderObject();
+  //   {
+  //     await Share.share(title.text,
+  //         subject: content,
+  //         sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
+  //   }
+  // }
 
   Widget textButton({required String text, required VoidCallback onPressed}) {
     return Padding(

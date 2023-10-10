@@ -15,8 +15,8 @@ class projdet extends StatefulWidget {
 class _projdetState extends State<projdet> {
   final ScrollController _scrollController = ScrollController();
   List<String> tabs=["Message Threads", "Tasks","Files"];
-  List ontab=[threads(),activities(),files()];
-
+  List ontab=[];
+////not initializing...
   int selectedIndex = 0;
 
   @override
@@ -24,6 +24,7 @@ class _projdetState extends State<projdet> {
     super.dispose();
     _scrollController.dispose();
   }
+
 
 
   @override

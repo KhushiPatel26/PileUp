@@ -1,8 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:html/parser.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 
+import '../../DB/ApiService3.dart';
+import '../../DB/models.dart';
+
 class addmsg extends StatefulWidget {
-  const addmsg({Key? key}) : super(key: key);
+  final int projId;
+  const addmsg({Key? key, required this.projId}) : super(key: key);
 
   @override
   State<addmsg> createState() => _addmsgState();
@@ -13,7 +20,7 @@ class _addmsgState extends State<addmsg> {
   late QuillEditorController printcontroller;
   //TextEditingController msgController=TextEditingController();
     String msgText="";
-
+  List<String> files=[];
   Color _backgroundColor = Color(0xFF212121);
   final _toolbarColor = Colors.black; //grey.shade200;
   //final _backgroundColor = Colors.black.withOpacity(0.5);
@@ -55,7 +62,7 @@ class _addmsgState extends State<addmsg> {
   ];
   final cleanTools = [ToolBarStyle.clean, ToolBarStyle.clearHistory];
   final fileTools = [ToolBarStyle.image, ToolBarStyle.video, ToolBarStyle.link];
-
+String? uid;
   bool _hasFocus = false;
   bool maintoolbox = true;
   List<ToolBarStyle> toolList = [];
@@ -73,6 +80,10 @@ class _addmsgState extends State<addmsg> {
       debugPrint('msg....... $text');
     });
     super.initState();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final User? user = _auth.currentUser;
+    uid = user?.uid;
+    print("uid:" + uid!);
   }
 
   @override
@@ -82,6 +93,18 @@ class _addmsgState extends State<addmsg> {
     super.dispose();
   }
 
+  ApiService3 api = ApiService3();
+  Future<void> _insertMsg() async {
+    final record = Msg(
+        pid: widget.projId,
+        uid: uid!,
+        msg: msgText,
+      isfile: files.length==0?'false':'true',
+        timing: DateTime.now().toString()
+    );
+    await api.createRecord('Messages', record.toJson());
+    print("Msg added successfully");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +125,8 @@ class _addmsgState extends State<addmsg> {
                   8),
               child: ElevatedButton(
                 onPressed: () async {
-
+                  msgTextConv();
+                  _insertMsg();
                   ScaffoldMessenger.of(
                       context)
                       .showSnackBar(
@@ -117,6 +141,7 @@ class _addmsgState extends State<addmsg> {
                                 color:
                                 Colors.black),
                           )));
+                  Navigator.pop(context);
                 },
                 child: Padding(
                   padding:
@@ -545,6 +570,14 @@ class _addmsgState extends State<addmsg> {
   Future<String> getHtmlT() async{
     String? htmlt=await controller.getText();
     return htmlt;
+  }
+  void msgTextConv() async {
+    //projdesc
+    String htmlString = await controller.getText();
+    final document = parse(htmlString);
+    String parsedString = parse(document.body!.text).documentElement!.text;
+    msgText = parsedString;
+    //debugPrint(htmlText);
   }
 
   ///[setHtmlText] to set the html text to editor

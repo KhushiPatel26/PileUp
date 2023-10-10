@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdfWidgets;
 import 'package:path_provider/path_provider.dart';
+import 'package:pup/DB/models.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 
+import '../../DB/ApiService3.dart';
+
 class viewnote extends StatefulWidget {
-  final QuillEditorController controller1;
-  final String title;
-  final Color bgcolor;
-  const viewnote({Key? key, required this.controller1, required this.title, required this.bgcolor}) : super(key: key);
+  NotebookPage? nbpgid;
+  QuillEditorController? controller1;
+  String? title;
+  Color? bgcolor;
+  viewnote({Key? key, this.controller1, this.title, this.bgcolor,  this.nbpgid}) : super(key: key);
 
   @override
   State<viewnote> createState() => _viewnoteState();
@@ -33,6 +38,8 @@ class _viewnoteState extends State<viewnote> {
       debugPrint('listening to $text');
     });
     super.initState();
+    print('note book pg: ${widget.nbpgid}');
+
   }
 
   @override
@@ -41,9 +48,10 @@ class _viewnoteState extends State<viewnote> {
     super.dispose();
   }
 
+
   Future<void> convertToPdf() async {
-    String htmlContent = await widget.controller1.getText();
-print("html................."+htmlContent);
+    String? htmlContent = await widget.controller1?.getText();
+print("html................."+htmlContent!);
     final pdf = pdfWidgets.Document();
 
     // Add content to the PDF
@@ -59,7 +67,7 @@ print("html................."+htmlContent);
 
               width: double.infinity,
               height: double.infinity,
-              color: PdfColor.fromInt(widget.bgcolor.value),
+              color: PdfColor.fromInt(widget.nbpgid==null? widget.bgcolor!.value: int.parse(widget.nbpgid!.pgbgcolor!)),
               //color: PdfColor(red, green, blue),
               //color: PdfColor(widget.bgcolor.red.toDouble(), widget.bgcolor.green.toDouble(), widget.bgcolor.blue.toDouble(),widget.bgcolor.alpha.toDouble()),
               child:pdfWidgets.Column(
@@ -67,7 +75,7 @@ print("html................."+htmlContent);
               crossAxisAlignment: pdfWidgets.CrossAxisAlignment.start,
               children: <pdfWidgets.Widget>[
                 pdfWidgets.Text(
-                  widget.title,
+                 widget.nbpgid==null? widget.title! : widget.nbpgid!.pgtitle!,
                   style: pdfWidgets.TextStyle(
                     fontSize: 30,
                     fontWeight: pdfWidgets.FontWeight.bold,
@@ -107,7 +115,7 @@ print("html................."+htmlContent);
     );
   }
   void getHtmlText() async {
-    String? htmlText = await widget.controller1.getText();
+    String? htmlText = await widget.controller1?.getText();
     debugPrint(htmlText);
   }
   @override
@@ -129,15 +137,16 @@ print("html................."+htmlContent);
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.title,
+                widget.nbpgid==null? widget.title! : widget.nbpgid!.pgtitle!,
                 style: TextStyle(
                   fontSize: 30,
                   color: Colors.black, // Adjust title color if needed
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              if(widget.nbpgid==null)
               FutureBuilder<String>(
-                future: widget.controller1.getText(),
+                future: widget.controller1?.getText(),
                 builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     return QuillHtmlEditor(
@@ -154,13 +163,17 @@ print("html................."+htmlContent);
                       ),
                       hintTextAlign: TextAlign.start,
                       padding: const EdgeInsets.only(top: 10),
-                      backgroundColor: widget.bgcolor,
+                      backgroundColor: widget.bgcolor!,
                     );
                   } else {
                     return CircularProgressIndicator();
                   }
                 },
               ),
+              if(widget.nbpgid!=null)
+                Html(
+                  data: widget.nbpgid?.pgcontent!,
+                ),
             ],
           ),
         ),

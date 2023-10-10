@@ -200,7 +200,7 @@ class _calState extends State<cal> {
                             color: Colors.black),
                       ),
                       Text(
-                        '10 Tasks',
+                        '${reminders.length.toString()} Reminder',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w300,
@@ -234,9 +234,9 @@ class _calState extends State<cal> {
                 ],
               ),
 
-              SizedBox(
-                height: 30,
-              ),
+              // SizedBox(
+              //   height: 30,
+              // ),
               // if (_selectedDay != null) ...[
               //   Text(
               //     'Selected Day:',
@@ -288,7 +288,7 @@ class _calState extends State<cal> {
                 ),
                 calendarFormat: _calendarFormat,
                 headerStyle: HeaderStyle(
-                  //titleTextStyle: TextStyle(color: Colors.black),
+                  titleTextStyle: TextStyle(color: Colors.black.withOpacity(0.7),fontSize: 17),
                   formatButtonDecoration: BoxDecoration(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(15),

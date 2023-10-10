@@ -50,7 +50,7 @@ dependencies:
   firebase_auth:
   flutter_otp_text_field:
   toggle_switch:
-
+  share:
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -85,6 +85,7 @@ dependencies:
   pdf:
   html: ^0.15.0
   syncfusion_flutter_charts:
+  flutter_html:
 
 dev_dependencies:
   flutter_test:

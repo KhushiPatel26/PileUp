@@ -7,6 +7,7 @@ import '../../DB/ApiService3.dart';
 import '../../home/profile.dart';
 import '../mystuff.dart';
 import 'addnote.dart';
+import 'notepgs.dart';
 
 class notes extends StatefulWidget {
   const notes({Key? key}) : super(key: key);
@@ -231,21 +232,21 @@ class _notesState extends State<notes> {
                 ),
               ],
             ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8.0, left: 10),
-                child: Row(
-                  children: [
-                    Wrap(
-                      spacing: 1,
-                      direction: Axis.horizontal,
-                      children: choiceChips(_tags2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // SingleChildScrollView(
+            //   scrollDirection: Axis.horizontal,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(top: 8.0, left: 10),
+            //     child: Row(
+            //       children: [
+            //         Wrap(
+            //           spacing: 1,
+            //           direction: Axis.horizontal,
+            //           children: choiceChips(_tags2),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             if(nb!=[])
               //for(int i =0; i<nb.length;i++)
                 Padding(
@@ -265,26 +266,34 @@ class _notesState extends State<notes> {
                     ),
                     itemCount: nb.length,
                     itemBuilder: (context, i) {
-                      return Container(
-                        width: 100,
-                        height: 190,
-                        decoration: BoxDecoration(
-                            color: Color(int.parse(nb[i].nbcolor.toString())),
-                            borderRadius: BorderRadius.circular(10)
-                        ),
-                        child: Column(
-                          children: [
-                            Align(alignment: AlignmentDirectional.topStart,
-                                child: IconButton(onPressed: (){}, icon: nb[i].isimp=="false"? Icon(Icons.star_outline_outlined,size: 15,):Icon(Icons.star,size: 15,))
-                            ),
-                            Container(
-                                color: Colors.white,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5.0),
-                                  child: Text(nb[i].nbname,style: TextStyle(color: Colors.black,fontSize: 10)),
-                                )
-                            ),
-                          ],
+                      return GestureDetector(
+                        onTap: (){
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => notepgs(nb: nb[i],)));
+                        },
+                        child: Container(
+                          width: 100,
+                          height: 190,
+                          decoration: BoxDecoration(
+                              color: Color(int.parse(nb[i].nbcolor.toString())),
+                              borderRadius: BorderRadius.circular(10)
+                          ),
+                          child: Column(
+                            children: [
+                              Align(alignment: AlignmentDirectional.topStart,
+                                  child: IconButton(onPressed: (){}, icon: nb[i].isimp=="false"? Icon(Icons.star_outline_outlined,size: 15,):Icon(Icons.star,size: 15,))
+                              ),
+                              Container(
+                                  color: Colors.white,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(5.0),
+                                    child: Text(nb[i].nbname,style: TextStyle(color: Colors.black,fontSize: 10)),
+                                  )
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },

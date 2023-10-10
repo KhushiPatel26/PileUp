@@ -19,7 +19,8 @@ class _ntbookState extends State<ntbook> {
   TextEditingController nbnameController = TextEditingController();
   TextEditingController nbpw = TextEditingController();
   String category='personal';
-  String label='label';
+  String label='false';
+  bool ispw=false;
   bool isimp=false;
   Color nbcolor=Colors.black.withOpacity(0.8);
 
@@ -29,7 +30,7 @@ class _ntbookState extends State<ntbook> {
     final record = Notebook(uid: uid.toString(),
       nbname: nbnameController.text,
       nbcategory: category,
-      nblabel: label,
+      nblabel: ispw.toString(),
       isimp: isimp.toString(),
       nbcreate: DateTime.now().toString(),
       pw: nbpw.text,
@@ -37,6 +38,16 @@ class _ntbookState extends State<ntbook> {
     );
     await api.createRecord('Notebook', record.toJson());
     print("done");
+    _fetchData();
+  }
+  List<Notebook> noteb=[];
+  late int nbid;
+  Future<void> _fetchData() async {
+    final data = await api.readRecords('notebook');
+    setState(() {
+      noteb = data.map((json) => Notebook.fromJson(json)).where((element) => element.uid==uid && element.nbname==nbnameController.text).toList();
+      nbid=noteb[0].nbid!;
+    });
   }
 
   String? uid;
@@ -225,138 +236,206 @@ class _ntbookState extends State<ntbook> {
                         keyboardType: TextInputType.text),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
-                  child: Container(
-                    width: 370,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          blurRadius: 15,
-                          spreadRadius: 1,
-                          offset: Offset(0, 7),
+                Container(
+                  margin: EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: ispw,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            ispw = value!;
+                          });
+                        },
+                        //splashRadius: 210.0,
+                        activeColor: Colors.black, // Color when checkbox is checked
+                        checkColor: Colors.white, // Color of the checkmark
+                        materialTapTargetSize: MaterialTapTargetSize
+                            .shrinkWrap, // Remove extra padding
+                        visualDensity: VisualDensity.compact,
+                        side: BorderSide(
+                            color: Colors.black), // Reduce the checkbox size
+                        shape: CircleBorder(),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "Do you want lock your Notebook?",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 15,
+                                    // decoration: doremind
+                                    //     ? TextDecoration
+                                    //     .lineThrough
+                                    //     : TextDecoration.none,
+                                  ),
+                                ),
+                                // SizedBox(
+                                //   width: visible?80:120,
+                                // ),
+                                // Text(
+                                //   "26 Sept",
+                                //   style: TextStyle(
+                                //       color: Colors.black
+                                //           .withOpacity(0.5),
+                                //       fontWeight:
+                                //       FontWeight.w300),
+                                // )
+                              ],
+                            ),
+                            Text(
+                              "Set a password and secure your notebook",
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.black.withOpacity(0.6),
+                                  fontWeight: FontWeight.w300),
+                            )
+                          ],
                         ),
-                      ],
-                    ),
-                    child: TextFormField(
-                        controller: nbpw,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          labelText: 'Category',
-                          labelStyle: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            color: Color(0xFF57636C),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFF1F4F8),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFFF5963),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFFF5963),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4F8),
-                        ),
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          color: Color(0xFF101213),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        keyboardType: TextInputType.text),
+                      ),
+                    ],
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
-                  child: Container(
-                    width: 370,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          blurRadius: 15,
-                          spreadRadius: 1,
-                          offset: Offset(0, 7),
-                        ),
-                      ],
-                    ),
-                    child: TextFormField(
-                        controller: nbnameController,
-                        autofocus: true,
-                        decoration: InputDecoration(
-                          labelText: 'Labels',
-                          labelStyle: TextStyle(
+                Visibility(
+                  visible: ispw,
+                  child: Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
+                    child: Container(
+                      width: 370,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                            offset: Offset(0, 7),
+                          ),
+                        ],
+                      ),
+                      child: TextFormField(
+                          controller: nbpw,
+                          autofocus: true,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              color: Color(0xFF57636C),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w300,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFFF1F4F8),
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.black,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFFFF5963),
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xFFFF5963),
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            filled: true,
+                            fillColor: Color(0xFFF1F4F8),
+                          ),
+                          style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
-                            color: Color(0xFF57636C),
+                            color: Color(0xFF101213),
                             fontSize: 14,
-                            fontWeight: FontWeight.w300,
+                            fontWeight: FontWeight.w400,
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFF1F4F8),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFFF5963),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFFFF5963),
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4F8),
-                        ),
-                        style: TextStyle(
-                          fontFamily: 'Plus Jakarta Sans',
-                          color: Color(0xFF101213),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        keyboardType: TextInputType.text),
+                          keyboardType: TextInputType.text),
+                    ),
                   ),
                 ),
+                // Padding(
+                //   padding: EdgeInsetsDirectional.fromSTEB(20, 8, 20, 16),
+                //   child: Container(
+                //     width: 370,
+                //     decoration: BoxDecoration(
+                //       borderRadius: BorderRadius.circular(100),
+                //       boxShadow: [
+                //         BoxShadow(
+                //           color: Colors.grey.withOpacity(0.3),
+                //           blurRadius: 15,
+                //           spreadRadius: 1,
+                //           offset: Offset(0, 7),
+                //         ),
+                //       ],
+                //     ),
+                //     child: TextFormField(
+                //         controller: nbnameController,
+                //         autofocus: true,
+                //         decoration: InputDecoration(
+                //           labelText: 'Labels',
+                //           labelStyle: TextStyle(
+                //             fontFamily: 'Plus Jakarta Sans',
+                //             color: Color(0xFF57636C),
+                //             fontSize: 14,
+                //             fontWeight: FontWeight.w300,
+                //           ),
+                //           enabledBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(
+                //               color: Color(0xFFF1F4F8),
+                //               width: 2,
+                //             ),
+                //             borderRadius: BorderRadius.circular(50),
+                //           ),
+                //           focusedBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(
+                //               color: Colors.black,
+                //               width: 1,
+                //             ),
+                //             borderRadius: BorderRadius.circular(50),
+                //           ),
+                //           errorBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(
+                //               color: Color(0xFFFF5963),
+                //               width: 2,
+                //             ),
+                //             borderRadius: BorderRadius.circular(50),
+                //           ),
+                //           focusedErrorBorder: OutlineInputBorder(
+                //             borderSide: BorderSide(
+                //               color: Color(0xFFFF5963),
+                //               width: 2,
+                //             ),
+                //             borderRadius: BorderRadius.circular(50),
+                //           ),
+                //           filled: true,
+                //           fillColor: Color(0xFFF1F4F8),
+                //         ),
+                //         style: TextStyle(
+                //           fontFamily: 'Plus Jakarta Sans',
+                //           color: Color(0xFF101213),
+                //           fontSize: 14,
+                //           fontWeight: FontWeight.w400,
+                //         ),
+                //         keyboardType: TextInputType.text),
+                //   ),
+                // ),
                 Padding(
                     padding: const EdgeInsets.all(8),
                     child: ElevatedButton(
@@ -372,7 +451,7 @@ class _ntbookState extends State<ntbook> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => notepgs()));
+                                builder: (context) => notepgs(nb: noteb[0])));
                       },
                       child: Padding(
                         padding: const EdgeInsets.only(
